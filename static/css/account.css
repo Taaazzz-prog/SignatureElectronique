@@ -57,7 +57,13 @@
 }
 
 .detail-value {
-    color: var(--text-light);
+    color: #1f2937; /* Gris foncé pour mode clair */
+    font-weight: 500;
+}
+
+/* Mode sombre */
+body.dark-mode .detail-value {
+    color: #e5e7eb; /* Gris clair pour mode sombre */
 }
 
 /* Statistiques */

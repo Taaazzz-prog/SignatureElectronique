@@ -5,6 +5,7 @@ import os
 from datetime import datetime
 import uuid
 from functools import wraps
+import requests  # Pour vérifier reCAPTCHA
 try:
     from PyPDF2 import PdfReader, PdfWriter
 except ImportError:
@@ -21,6 +22,39 @@ import database as db
 app = Flask(__name__)
 CORS(app, supports_credentials=True)
 app.secret_key = os.environ.get('SECRET_KEY', 'dev-secret-key-change-in-production-' + str(uuid.uuid4()))
+
+# Configuration reCAPTCHA
+RECAPTCHA_SECRET_KEY = os.environ.get('RECAPTCHA_SECRET_KEY', '')
+
+def verify_recaptcha(token):
+    """Vérifie le token reCAPTCHA v3"""
+    if not RECAPTCHA_SECRET_KEY:
+        # Si pas de clé configurée, on accepte (mode dev)
+        return True
+    
+    try:
+        response = requests.post(
+            'https://www.google.com/recaptcha/api/siteverify',
+            data={
+                'secret': RECAPTCHA_SECRET_KEY,
+                'response': token
+            },
+            timeout=5
+        )
+        result = response.json()
+        
+        # reCAPTCHA v3 retourne un score de 0.0 à 1.0
+        # Score > 0.5 = probablement humain
+        # Score < 0.5 = probablement bot
+        if result.get('success') and result.get('score', 0) >= 0.5:
+            return True
+        
+        print(f"reCAPTCHA failed: score={result.get('score', 0)}")
+        return False
+    except Exception as e:
+        print(f"Erreur vérification reCAPTCHA: {e}")
+        # En cas d'erreur, on accepte pour ne pas bloquer les vrais users
+        return True
 
 # Configuration
 UPLOAD_FOLDER = 'uploads'
@@ -76,6 +110,11 @@ def register():
     """Inscription d'un nouvel utilisateur"""
     data = request.get_json()
     
+    # Vérification reCAPTCHA
+    recaptcha_token = data.get('recaptcha_token')
+    if not verify_recaptcha(recaptcha_token):
+        return jsonify({'error': 'Vérification anti-bot échouée. Veuillez réessayer.'}), 403
+    
     email = data.get('email', '').strip()
     password = data.get('password', '')
     name = data.get('name', '').strip() if data.get('name') else None
@@ -104,6 +143,11 @@ def register():
 def login():
     """Connexion d'un utilisateur"""
     data = request.get_json()
+    
+    # Vérification reCAPTCHA (optionnelle sur login, mais recommandée)
+    recaptcha_token = data.get('recaptcha_token')
+    if recaptcha_token and not verify_recaptcha(recaptcha_token):
+        return jsonify({'error': 'Vérification anti-bot échouée. Veuillez réessayer.'}), 403
     
     email = data.get('email')
     password = data.get('password')

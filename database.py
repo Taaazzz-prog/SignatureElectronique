@@ -2,7 +2,7 @@
 Gestion de la base de données SQLite pour l'application
 """
 import sqlite3
-import hashlib
+import bcrypt
 import secrets
 import os
 import re
@@ -88,18 +88,28 @@ def init_db():
         print("Base de donnees initialisee avec succes")
 
 def hash_password(password):
-    """Hash un mot de passe avec SHA-256 et un salt"""
-    salt = secrets.token_hex(16)
-    pwd_hash = hashlib.sha256((password + salt).encode()).hexdigest()
-    return f"{salt}${pwd_hash}"
+    """Hash un mot de passe avec bcrypt (12 rounds)"""
+    salt = bcrypt.gensalt(rounds=12)
+    return bcrypt.hashpw(password.encode('utf-8'), salt).decode('utf-8')
 
 def verify_password(password, password_hash):
-    """Vérifie un mot de passe contre son hash"""
+    """Vérifie un mot de passe contre son hash (bcrypt ou ancien SHA-256)"""
     try:
-        salt, pwd_hash = password_hash.split('$')
-        new_hash = hashlib.sha256((password + salt).encode()).hexdigest()
-        return new_hash == pwd_hash
-    except:
+        # Vérifier si c'est un hash bcrypt (commence par $2b$ ou $2a$ ou $2y$)
+        if password_hash.startswith(('$2b$', '$2a$', '$2y$')):
+            return bcrypt.checkpw(password.encode('utf-8'), password_hash.encode('utf-8'))
+        else:
+            # Ancien format SHA-256 avec salt (format: hash:salt)
+            import hashlib
+            try:
+                stored_hash, salt = password_hash.split(':')
+                computed_hash = hashlib.sha256((password + salt).encode('utf-8')).hexdigest()
+                return computed_hash == stored_hash
+            except ValueError:
+                # Si le format n'est pas reconnu, retourner False
+                return False
+    except Exception as e:
+        print(f"Erreur de vérification du mot de passe: {e}")
         return False
 
 def create_user(email, password, name=None):
@@ -138,6 +148,17 @@ def authenticate_user(email, password):
                 'UPDATE users SET last_login = ? WHERE id = ?',
                 (datetime.now(), user['id'])
             )
+            
+            # Migration automatique du hash si nécessaire
+            # Si l'utilisateur a un ancien hash SHA-256, le migrer vers bcrypt
+            if not user['password_hash'].startswith(('$2b$', '$2a$', '$2y$')):
+                new_hash = hash_password(password)
+                cursor.execute(
+                    'UPDATE users SET password_hash = ? WHERE id = ?',
+                    (new_hash, user['id'])
+                )
+                print(f"Mot de passe migré vers bcrypt pour l'utilisateur {email}")
+            
             return dict(user)
         return None
 

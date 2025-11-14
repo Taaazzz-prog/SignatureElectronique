@@ -6,6 +6,10 @@
     <title>{% block title %}Signature PDF{% endblock %}</title>
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>✍️</text></svg>">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+    
+    <!-- Google reCAPTCHA v3 -->
+    <script src="https://www.google.com/recaptcha/api.js?render=6LdP6AwsAAAAAMDKl4Qo9u3C0dK1qhTWjJMvEmDq"></script>
+    
     {% block extra_css %}{% endblock %}
 </head>
 <body>
@@ -20,7 +24,7 @@
             <div class="user-menu">
                 <div class="user-info hidden" id="userInfo">
                     <div class="user-name" id="userName"></div>
-                    <div class="user-email" id="userEmail"></div>
+                    <div class="user-email" id="headerUserEmail"></div>
                 </div>
                 <button class="btn btn-small btn-secondary" id="authBtn" onclick="showAuthModal()">
                     Connexion

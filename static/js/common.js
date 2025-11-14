@@ -5,6 +5,38 @@ let currentUser = null;
 let authToken = null;
 
 // ============================================
+// RECAPTCHA
+// ============================================
+
+// Configuration reCAPTCHA (clé publique)
+const RECAPTCHA_SITE_KEY = '6LdP6AwsAAAAAMDKl4Qo9u3C0dK1qhTWjJMvEmDq';
+
+async function getRecaptchaToken(action) {
+    try {
+        // Si grecaptcha n'est pas chargé, retourner null
+        if (typeof grecaptcha === 'undefined') {
+            console.warn('reCAPTCHA not loaded');
+            return null;
+        }
+        
+        // Attendre que grecaptcha soit prêt et obtenir le token
+        return await new Promise((resolve, reject) => {
+            grecaptcha.ready(async () => {
+                try {
+                    const token = await grecaptcha.execute(RECAPTCHA_SITE_KEY, { action });
+                    resolve(token);
+                } catch (error) {
+                    reject(error);
+                }
+            });
+        });
+    } catch (error) {
+        console.error('Erreur reCAPTCHA:', error);
+        return null;
+    }
+}
+
+// ============================================
 // AUTHENTIFICATION
 // ============================================
 
@@ -21,6 +53,11 @@ function checkAuth() {
             if (data.id) {
                 currentUser = data;
                 updateUIForLoggedInUser();
+                
+                // Appeler le callback de la page si défini
+                if (typeof onUserLoggedIn === 'function') {
+                    onUserLoggedIn();
+                }
             } else {
                 logout();
             }
@@ -28,17 +65,22 @@ function checkAuth() {
         .catch(() => logout());
     } else {
         updateUIForLoggedOutUser();
+        
+        // Appeler le callback de la page si défini
+        if (typeof onUserLoggedOut === 'function') {
+            onUserLoggedOut();
+        }
     }
 }
 
 function updateUIForLoggedInUser() {
     const userNameEl = document.getElementById('userName');
-    const userEmailEl = document.getElementById('userEmail');
+    const headerUserEmailEl = document.getElementById('headerUserEmail');
     const userInfoEl = document.getElementById('userInfo');
     const authBtnEl = document.getElementById('authBtn');
     
     if (userNameEl) userNameEl.textContent = currentUser.name || 'Utilisateur';
-    if (userEmailEl) userEmailEl.textContent = currentUser.email;
+    if (headerUserEmailEl) headerUserEmailEl.textContent = currentUser.email;
     if (userInfoEl) userInfoEl.classList.remove('hidden');
     if (authBtnEl) {
         authBtnEl.textContent = 'Déconnexion';
@@ -142,10 +184,18 @@ async function register() {
     }
 
     try {
+        // Obtenir le token reCAPTCHA
+        const recaptchaToken = await getRecaptchaToken('register');
+        
         const response = await fetch('/api/register', {
             method: 'POST',
             headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify({name, email, password})
+            body: JSON.stringify({
+                name, 
+                email, 
+                password,
+                recaptcha_token: recaptchaToken
+            })
         });
 
         const data = await response.json();

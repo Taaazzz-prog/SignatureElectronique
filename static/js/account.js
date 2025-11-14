@@ -30,30 +30,8 @@ function onUserLoggedOut() {
 // ============================================
 
 document.addEventListener('DOMContentLoaded', function() {
-    // Attendre que common.js charge l'utilisateur
-    const checkUserInterval = setInterval(() => {
-        if (typeof currentUser !== 'undefined') {
-            clearInterval(checkUserInterval);
-            if (currentUser) {
-                loadUserInfo();
-                loadUserStats();
-                loadPreferences();
-            } else if (!localStorage.getItem('authToken')) {
-                showMessage('Veuillez vous connecter pour accéder à cette page', 'info');
-                setTimeout(() => {
-                    window.location.href = '/';
-                }, 1500);
-            }
-        }
-    }, 100);
-    
-    // Timeout de sécurité
-    setTimeout(() => {
-        clearInterval(checkUserInterval);
-        if (!currentUser && !localStorage.getItem('authToken')) {
-            window.location.href = '/';
-        }
-    }, 3000);
+    // Ne rien faire ici, on attend que checkAuth() appelle onUserLoggedIn()
+    console.log('account.js: Page loaded, waiting for auth...');
 });
 
 // ============================================
@@ -61,11 +39,16 @@ document.addEventListener('DOMContentLoaded', function() {
 // ============================================
 
 function loadUserInfo() {
-    if (!currentUser) return;
+    if (!currentUser) {
+        console.warn('loadUserInfo: currentUser is not defined yet');
+        return;
+    }
     
     // Email
     const emailEl = document.getElementById('userEmail');
-    if (emailEl) emailEl.textContent = currentUser.email || '-';
+    if (emailEl) {
+        emailEl.textContent = currentUser.email || '-';
+    }
     
     // Initiales pour l'avatar
     const initialsEl = document.getElementById('avatarInitials');
