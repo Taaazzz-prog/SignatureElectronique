@@ -832,3 +832,22 @@ body.dark-mode .danger-label {
 body.dark-mode .danger-desc {
     color: #d1d5db;
 }
+
+/* Canvas et signatures - Fond blanc forcé en mode sombre */
+body.dark-mode #signatureCanvas,
+body.dark-mode #createSignatureCanvas {
+    background: white !important;
+    border-color: #9ca3af;
+}
+
+body.dark-mode .signature-preview {
+    background: white;
+    padding: 0.5rem;
+    border-radius: 8px;
+}
+
+body.dark-mode .signature-item img {
+    background: white;
+    padding: 0.5rem;
+    border-radius: 8px;
+}
