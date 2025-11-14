@@ -18,8 +18,8 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Copier tout le code de l'application
 COPY . .
 
-# Créer les dossiers nécessaires pour les uploads
-RUN mkdir -p uploads signed signatures
+# Créer les dossiers nécessaires pour les uploads et la base de données
+RUN mkdir -p uploads signed signatures data
 
 # Exposer le port 5000
 EXPOSE 5000

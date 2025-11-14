@@ -12,6 +12,9 @@ services:
       - signature_uploads:/app/uploads
       - signature_signed:/app/signed
       - signature_signatures:/app/signatures
+      - signature_database:/app/data
+    environment:
+      - DATABASE_PATH=/app/data/signature_app.db
     networks:
       - faildaily-ssl-network  # Utilise le réseau Traefik de FailDaily
     labels:
@@ -41,6 +44,8 @@ volumes:
   signature_signed:
     driver: local
   signature_signatures:
+    driver: local
+  signature_database:
     driver: local
 
 # 🌐 RÉSEAUX

@@ -1,0 +1,214 @@
+{% extends "base.html" %}
+
+{% block title %}Mon Compte - Signature PDF{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/account.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1>👤 Mon compte</h1>
+    <p class="subtitle">Gérez votre profil et vos préférences</p>
+</div>
+
+<!-- User Profile -->
+<div class="card">
+    <div class="card-title">📧 Informations du compte</div>
+    
+    <div class="profile-info">
+        <div class="profile-avatar">
+            <div class="avatar-circle" id="avatarCircle">
+                <span id="avatarInitials">U</span>
+            </div>
+        </div>
+        
+        <div class="profile-details">
+            <div class="detail-row">
+                <span class="detail-label">Email :</span>
+                <span class="detail-value" id="userEmail">-</span>
+            </div>
+            <div class="detail-row">
+                <span class="detail-label">Membre depuis :</span>
+                <span class="detail-value" id="memberSince">-</span>
+            </div>
+            <div class="detail-row">
+                <span class="detail-label">Dernière connexion :</span>
+                <span class="detail-value" id="lastLogin">-</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Statistics -->
+<div class="card">
+    <div class="card-title">📊 Vos statistiques</div>
+    
+    <div class="stats-grid">
+        <div class="stat-card">
+            <div class="stat-icon">📄</div>
+            <div class="stat-value" id="totalSignedDocs">0</div>
+            <div class="stat-label">Documents signés</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon">✍️</div>
+            <div class="stat-value" id="totalSignatures">0</div>
+            <div class="stat-label">Signatures créées</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon">📅</div>
+            <div class="stat-value" id="accountAge">0</div>
+            <div class="stat-label">Jours d'utilisation</div>
+        </div>
+    </div>
+</div>
+
+<!-- Preferences -->
+<div class="card">
+    <div class="card-title">⚙️ Préférences</div>
+    
+    <div class="preferences-form">
+        <div class="preference-item">
+            <div class="preference-info">
+                <div class="preference-label">🌙 Mode sombre</div>
+                <div class="preference-desc">Activer le thème sombre pour l'interface</div>
+            </div>
+            <label class="switch">
+                <input type="checkbox" id="darkModeToggle" onchange="toggleDarkMode()">
+                <span class="slider"></span>
+            </label>
+        </div>
+
+        <div class="preference-item">
+            <div class="preference-info">
+                <div class="preference-label">🔔 Notifications</div>
+                <div class="preference-desc">Recevoir des notifications par email</div>
+            </div>
+            <label class="switch">
+                <input type="checkbox" id="notificationsToggle" onchange="toggleNotifications()">
+                <span class="slider"></span>
+            </label>
+        </div>
+
+        <div class="preference-item">
+            <div class="preference-info">
+                <div class="preference-label">💾 Sauvegarder automatiquement</div>
+                <div class="preference-desc">Proposer de sauvegarder chaque signature dessinée</div>
+            </div>
+            <label class="switch">
+                <input type="checkbox" id="autoSaveToggle" onchange="toggleAutoSave()">
+                <span class="slider"></span>
+            </label>
+        </div>
+
+        <div class="preference-item">
+            <div class="preference-info">
+                <div class="preference-label">📱 Activer le mode tactile</div>
+                <div class="preference-desc">Optimiser l'interface pour les écrans tactiles</div>
+            </div>
+            <label class="switch">
+                <input type="checkbox" id="touchModeToggle" onchange="toggleTouchMode()">
+                <span class="slider"></span>
+            </label>
+        </div>
+    </div>
+</div>
+
+<!-- Signature Defaults -->
+<div class="card">
+    <div class="card-title">✍️ Paramètres de signature par défaut</div>
+    
+    <div class="position-grid">
+        <div class="control-group">
+            <label class="control-label">Position X par défaut</label>
+            <input type="number" id="defaultX" class="control-input" value="400" min="0" max="550">
+        </div>
+        <div class="control-group">
+            <label class="control-label">Position Y par défaut</label>
+            <input type="number" id="defaultY" class="control-input" value="50" min="0" max="750">
+        </div>
+        <div class="control-group">
+            <label class="control-label">Largeur par défaut</label>
+            <input type="number" id="defaultWidth" class="control-input" value="150" min="50" max="300">
+        </div>
+        <div class="control-group">
+            <label class="control-label">Page par défaut</label>
+            <select id="defaultPage" class="control-input">
+                <option value="0">Première page</option>
+                <option value="-1">Dernière page</option>
+            </select>
+        </div>
+    </div>
+
+    <div style="text-align: center; margin-top: 1rem;">
+        <button class="btn btn-primary" onclick="saveDefaultSettings()">
+            💾 Sauvegarder les paramètres
+        </button>
+    </div>
+</div>
+
+<!-- Danger Zone -->
+<div class="card danger-zone">
+    <div class="card-title">⚠️ Zone de danger</div>
+    
+    <div class="danger-actions">
+        <div class="danger-item">
+            <div>
+                <div class="danger-label">Supprimer toutes les signatures</div>
+                <div class="danger-desc">Supprime définitivement toutes vos signatures sauvegardées</div>
+            </div>
+            <button class="btn btn-danger btn-small" onclick="confirmDeleteAllSignatures()">
+                🗑️ Supprimer tout
+            </button>
+        </div>
+
+        <div class="danger-item">
+            <div>
+                <div class="danger-label">Supprimer l'historique</div>
+                <div class="danger-desc">Efface l'historique de tous vos documents signés</div>
+            </div>
+            <button class="btn btn-danger btn-small" onclick="confirmDeleteHistory()">
+                🗑️ Effacer l'historique
+            </button>
+        </div>
+
+        <div class="danger-item">
+            <div>
+                <div class="danger-label">Supprimer le compte</div>
+                <div class="danger-desc">Supprime définitivement votre compte et toutes vos données</div>
+            </div>
+            <button class="btn btn-danger btn-small" onclick="confirmDeleteAccount()">
+                ⚠️ Supprimer le compte
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Confirmation Modal -->
+<div id="confirmModal" class="modal hidden">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2 id="confirmModalTitle">Confirmer l'action</h2>
+            <button class="modal-close" onclick="closeConfirmModal()">&times;</button>
+        </div>
+        <div class="modal-body">
+            <p id="confirmModalMessage">Êtes-vous sûr de vouloir effectuer cette action ?</p>
+            <p style="color: var(--danger); font-size: 0.875rem; font-weight: 600;">
+                Cette action est irréversible.
+            </p>
+        </div>
+        <div class="modal-actions">
+            <button class="btn btn-danger" id="confirmActionBtn">
+                Confirmer
+            </button>
+            <button class="btn btn-secondary" onclick="closeConfirmModal()">
+                Annuler
+            </button>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/account.js') }}"></script>
+{% endblock %}

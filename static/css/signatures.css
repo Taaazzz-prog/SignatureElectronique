@@ -1,0 +1,46 @@
+/* Styles spécifiques à la page de gestion des signatures */
+
+.page-header {
+    text-align: center;
+    margin-bottom: 2rem;
+    color: white;
+}
+
+.page-header h1 {
+    font-size: 2rem;
+    margin-bottom: 0.5rem;
+}
+
+.page-header .subtitle {
+    font-size: 1.125rem;
+    opacity: 0.9;
+}
+
+.empty-state {
+    text-align: center;
+    padding: 3rem 1rem;
+    color: var(--text-light);
+}
+
+/* Modal specifique aux signatures */
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+}
+
+.modal-header h2 {
+    font-size: 1.5rem;
+    color: var(--text-dark);
+}
+
+.modal-body {
+    margin-bottom: 1.5rem;
+}
+
+.modal-actions {
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+}

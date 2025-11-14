@@ -157,7 +157,23 @@ def get_current_user_info():
 
 @app.route('/')
 def index():
-    return render_template('index.html')
+    """Page d'accueil - Upload et signature de PDF"""
+    return render_template('index_new.html')
+
+@app.route('/signatures')
+def signatures_page():
+    """Page de gestion des signatures"""
+    return render_template('signatures.html')
+
+@app.route('/history')
+def history_page():
+    """Page d'historique des documents signés"""
+    return render_template('history.html')
+
+@app.route('/account')
+def account_page():
+    """Page de gestion du compte utilisateur"""
+    return render_template('account.html')
 
 @app.route('/api/upload', methods=['POST'])
 @login_optional

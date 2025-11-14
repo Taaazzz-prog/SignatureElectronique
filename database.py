@@ -4,10 +4,11 @@ Gestion de la base de données SQLite pour l'application
 import sqlite3
 import hashlib
 import secrets
+import os
 from datetime import datetime
 from contextlib import contextmanager
 
-DATABASE_PATH = 'signature_app.db'
+DATABASE_PATH = os.getenv('DATABASE_PATH', 'signature_app.db')
 
 @contextmanager
 def get_db():
