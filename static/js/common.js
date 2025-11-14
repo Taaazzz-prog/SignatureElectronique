@@ -381,5 +381,15 @@ function setupCanvas(canvasId) {
 // ============================================
 
 document.addEventListener('DOMContentLoaded', function() {
+    // Appliquer le mode sombre si activé
+    if (localStorage.getItem('darkMode') === 'true') {
+        document.body.classList.add('dark-mode');
+    }
+    
+    // Appliquer le mode tactile si activé
+    if (localStorage.getItem('touchMode') === 'true') {
+        document.body.classList.add('touch-mode');
+    }
+    
     checkAuth();
 });

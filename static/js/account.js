@@ -30,14 +30,30 @@ function onUserLoggedOut() {
 // ============================================
 
 document.addEventListener('DOMContentLoaded', function() {
-    // Vérifier si l'utilisateur est connecté
-    if (!authToken && !localStorage.getItem('authToken')) {
-        showMessage('Veuillez vous connecter pour accéder à cette page', 'info');
-        setTimeout(() => {
+    // Attendre que common.js charge l'utilisateur
+    const checkUserInterval = setInterval(() => {
+        if (typeof currentUser !== 'undefined') {
+            clearInterval(checkUserInterval);
+            if (currentUser) {
+                loadUserInfo();
+                loadUserStats();
+                loadPreferences();
+            } else if (!localStorage.getItem('authToken')) {
+                showMessage('Veuillez vous connecter pour accéder à cette page', 'info');
+                setTimeout(() => {
+                    window.location.href = '/';
+                }, 1500);
+            }
+        }
+    }, 100);
+    
+    // Timeout de sécurité
+    setTimeout(() => {
+        clearInterval(checkUserInterval);
+        if (!currentUser && !localStorage.getItem('authToken')) {
             window.location.href = '/';
-        }, 1500);
-        return;
-    }
+        }
+    }, 3000);
 });
 
 // ============================================
@@ -49,7 +65,7 @@ function loadUserInfo() {
     
     // Email
     const emailEl = document.getElementById('userEmail');
-    if (emailEl) emailEl.textContent = currentUser.email;
+    if (emailEl) emailEl.textContent = currentUser.email || '-';
     
     // Initiales pour l'avatar
     const initialsEl = document.getElementById('avatarInitials');
