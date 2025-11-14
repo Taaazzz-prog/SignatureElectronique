@@ -1,24 +1,57 @@
 # Environnement virtuel Python
 venv/
+.venv/
 env/
 ENV/
 *.pyc
 __pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
 
-# Fichiers uploadés et signés
+# Fichiers uploadés et signés (DONNÉES SENSIBLES)
 uploads/
 signed/
 signatures/
+*.pdf
+
+# Fichiers de configuration et secrets
+.env
+.env.local
+.env.*.local
+*.key
+*.pem
+*.crt
+secrets/
+config.local.*
 
 # Fichiers de configuration IDE
 .vscode/
 .idea/
 *.swp
 *.swo
+*.sublime-*
 
 # Logs
 *.log
+logs/
 
 # Fichiers système
 .DS_Store
 Thumbs.db
+desktop.ini
+
+# Fichiers de base de données
+*.db
+*.sqlite
+*.sqlite3
+
+# Backups
+*.bak
+*.backup
+*.tmp
+
+# Fichiers de test
+test_uploads/
+test_data/
