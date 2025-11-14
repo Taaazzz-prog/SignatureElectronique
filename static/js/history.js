@@ -105,8 +105,35 @@ function formatDate(date) {
 
 async function downloadHistoryItem(id) {
     try {
-        window.location.href = `/api/history/${id}/download`;
-        showMessage('Téléchargement en cours...', 'info');
+        const response = await apiCall(`/api/history/${id}/download`);
+        
+        if (!response.ok) {
+            showMessage('Erreur lors du téléchargement', 'error');
+            return;
+        }
+        
+        // Récupérer le nom du fichier depuis les headers
+        const contentDisposition = response.headers.get('Content-Disposition');
+        let filename = 'document_signe.pdf';
+        if (contentDisposition) {
+            const filenameMatch = contentDisposition.match(/filename="?(.+)"?/);
+            if (filenameMatch) {
+                filename = filenameMatch[1];
+            }
+        }
+        
+        // Créer un blob et le télécharger
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = filename;
+        document.body.appendChild(a);
+        a.click();
+        window.URL.revokeObjectURL(url);
+        document.body.removeChild(a);
+        
+        showMessage('✅ Téléchargement réussi', 'success');
     } catch (error) {
         console.error('Download error:', error);
         showMessage('Erreur lors du téléchargement', 'error');
