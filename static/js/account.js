@@ -274,11 +274,33 @@ async function deleteAllSignatures() {
 }
 
 async function deleteHistory() {
-    showMessage('⚠️ Cette fonctionnalité n\'est pas encore implémentée', 'info');
-    // TODO: Implémenter la suppression de l'historique côté serveur
+    try {
+        const response = await apiCall('/api/history', { method: 'DELETE' });
+        if (response.ok) {
+            showMessage('✅ Historique supprimé avec succès', 'success');
+            loadUserStats();
+        } else {
+            showMessage('Erreur lors de la suppression de l\'historique', 'error');
+        }
+    } catch (error) {
+        console.error('Error deleting history:', error);
+        showMessage('Erreur lors de la suppression de l\'historique', 'error');
+    }
 }
 
 async function deleteAccount() {
-    showMessage('⚠️ Cette fonctionnalité n\'est pas encore implémentée', 'info');
-    // TODO: Implémenter la suppression du compte côté serveur
+    try {
+        const response = await apiCall('/api/account', { method: 'DELETE' });
+        if (response.ok) {
+            showMessage('✅ Compte supprimé. Vous allez être déconnecté...', 'success');
+            setTimeout(() => {
+                logout();
+            }, 2000);
+        } else {
+            showMessage('Erreur lors de la suppression du compte', 'error');
+        }
+    } catch (error) {
+        console.error('Error deleting account:', error);
+        showMessage('Erreur lors de la suppression du compte', 'error');
+    }
 }

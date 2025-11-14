@@ -242,6 +242,30 @@ def clean_old_files():
         
         return files_to_delete
 
+def delete_user_history(user_id):
+    """Supprime tout l'historique d'un utilisateur"""
+    try:
+        with get_db() as conn:
+            cursor = conn.cursor()
+            cursor.execute('DELETE FROM signature_history WHERE user_id = ?', (user_id,))
+        return True
+    except Exception as e:
+        print(f"Erreur lors de la suppression de l'historique: {e}")
+        return False
+
+def delete_user(user_id):
+    """Supprime un utilisateur et toutes ses données"""
+    try:
+        with get_db() as conn:
+            cursor = conn.cursor()
+            # Les DELETE CASCADE dans le schema s'occupent de supprimer
+            # les signatures, l'historique et les sessions
+            cursor.execute('DELETE FROM users WHERE id = ?', (user_id,))
+        return True
+    except Exception as e:
+        print(f"Erreur lors de la suppression de l'utilisateur: {e}")
+        return False
+
 if __name__ == '__main__':
     # Initialise la base de données si exécuté directement
     init_db()

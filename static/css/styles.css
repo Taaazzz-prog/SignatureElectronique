@@ -814,3 +814,21 @@ body.dark-mode .page-header {
 body.dark-mode .page-header .subtitle {
     color: #d1d5db;
 }
+
+body.dark-mode .danger-zone {
+    background: #374151;
+    border-color: #dc2626;
+}
+
+body.dark-mode .danger-item {
+    background: #1f2937;
+    border-color: #4b5563;
+}
+
+body.dark-mode .danger-label {
+    color: #fca5a5;
+}
+
+body.dark-mode .danger-desc {
+    color: #d1d5db;
+}

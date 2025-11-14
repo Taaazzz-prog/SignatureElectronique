@@ -390,6 +390,28 @@ def download_from_history(history_id):
     
     return send_file(filepath, as_attachment=True, download_name=entry['signed_filename'])
 
+@app.route('/api/history', methods=['DELETE'])
+@login_required
+def delete_all_history():
+    """Supprime tout l'historique de l'utilisateur"""
+    user_id = request.current_user['id']
+    
+    success = db.delete_user_history(user_id)
+    if success:
+        return jsonify({'success': True, 'message': 'Historique supprimé'})
+    return jsonify({'error': 'Erreur lors de la suppression'}), 500
+
+@app.route('/api/account', methods=['DELETE'])
+@login_required
+def delete_account():
+    """Supprime le compte utilisateur et toutes ses données"""
+    user_id = request.current_user['id']
+    
+    # Supprimer toutes les données de l'utilisateur
+    success = db.delete_user(user_id)
+    if success:
+        return jsonify({'success': True, 'message': 'Compte supprimé'})
+    return jsonify({'error': 'Erreur lors de la suppression'}), 500
+
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0', port=5000)
-
