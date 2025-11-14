@@ -1,0 +1,57 @@
+version: '3.8'
+
+services:
+  # 🐳 APPLICATION SIGNATURE ÉLECTRONIQUE - CONNECTÉE AU TRAEFIK FAILDAILY
+  signature-app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: signature_electronique_app
+    restart: unless-stopped
+    volumes:
+      - signature_uploads:/app/uploads
+      - signature_signed:/app/signed
+      - signature_signatures:/app/signatures
+    networks:
+      - faildaily-ssl-network  # Utilise le réseau Traefik de FailDaily
+    labels:
+      # 🌐 Configuration Traefik pour Signature Électronique
+      - "traefik.enable=true"
+      - "traefik.http.routers.signature.rule=Host(`signatureelectronique.taaazzz-prog.fr`)"
+      - "traefik.http.routers.signature.priority=90"
+      - "traefik.http.routers.signature.tls=true"
+      - "traefik.http.routers.signature.tls.certresolver=letsencrypt"
+      - "traefik.http.services.signature.loadbalancer.server.port=5000"
+      # 🔒 Headers de sécurité
+      - "traefik.http.middlewares.signature-security.headers.framedeny=true"
+      - "traefik.http.middlewares.signature-security.headers.contentTypeNosniff=true"
+      - "traefik.http.middlewares.signature-security.headers.browserXssFilter=true"
+      - "traefik.http.middlewares.signature-security.headers.referrerPolicy=same-origin"
+      - "traefik.http.middlewares.signature-security.headers.stsSeconds=31536000"
+      - "traefik.http.middlewares.signature-security.headers.stsIncludeSubdomains=true"
+      - "traefik.http.middlewares.signature-security.headers.customRequestHeaders.X-Forwarded-Proto=https"
+      - "traefik.http.routers.signature.middlewares=signature-security"
+      # 📦 Limite de taille des fichiers
+      - "traefik.http.middlewares.signature-limit.buffering.maxRequestBodyBytes=20971520"  # 20MB
+
+# 📦 VOLUMES PERSISTANTS
+volumes:
+  signature_uploads:
+    driver: local
+  signature_signed:
+    driver: local
+  signature_signatures:
+    driver: local
+
+# 🌐 RÉSEAUX
+networks:
+  faildaily-ssl-network:
+    external: true  # Utilise le réseau existant de FailDaily
+    name: faildaily_faildaily-ssl-network
+
+# 🎯 CONFIGURATION:
+# - Connexion au Traefik centralisé de FailDaily (faildaily-traefik-ssl)
+# - SSL automatique via Let's Encrypt
+# - Domaine: signatureelectronique.taaazzz-prog.fr
+# - Port interne: 5000
+# - Serveur: Gunicorn (production-ready)

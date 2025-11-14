@@ -1,0 +1,24 @@
+# Environnement virtuel Python
+venv/
+env/
+ENV/
+*.pyc
+__pycache__/
+
+# Fichiers uploadés et signés
+uploads/
+signed/
+signatures/
+
+# Fichiers de configuration IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Logs
+*.log
+
+# Fichiers système
+.DS_Store
+Thumbs.db
