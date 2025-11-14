@@ -1,6 +1,17 @@
 # 📝 Signature Électronique PDF
 
+![Python](https://img.shields.io/badge/Python-3.11-blue)
+![Flask](https://img.shields.io/badge/Flask-3.0-green)
+![Docker](https://img.shields.io/badge/Docker-Ready-blue)
+![License](https://img.shields.io/badge/License-MIT-yellow)
+
 Application web simple et efficace pour signer des fichiers PDF électroniquement.
+
+## 🌐 Demo en ligne
+
+**URL de production** : [https://signatureelectronique.taaazzz-prog.fr](https://signatureelectronique.taaazzz-prog.fr)
+
+---
 
 ## 🚀 Fonctionnalités
 
