@@ -5,10 +5,16 @@ import sqlite3
 import hashlib
 import secrets
 import os
+import re
 from datetime import datetime
 from contextlib import contextmanager
 
 DATABASE_PATH = os.getenv('DATABASE_PATH', 'signature_app.db')
+
+def is_valid_email(email):
+    """Valide le format d'un email"""
+    pattern = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
+    return re.match(pattern, email) is not None
 
 @contextmanager
 def get_db():
@@ -98,6 +104,14 @@ def verify_password(password, password_hash):
 
 def create_user(email, password, name=None):
     """Crée un nouvel utilisateur"""
+    # Valider l'email
+    if not is_valid_email(email):
+        raise ValueError("Format d'email invalide")
+    
+    # Valider la longueur du mot de passe
+    if len(password) < 6:
+        raise ValueError("Le mot de passe doit contenir au moins 6 caractères")
+    
     with get_db() as conn:
         cursor = conn.cursor()
         password_hash = hash_password(password)
@@ -105,7 +119,7 @@ def create_user(email, password, name=None):
         try:
             cursor.execute(
                 'INSERT INTO users (email, password_hash, name) VALUES (?, ?, ?)',
-                (email, password_hash, name)
+                (email.lower(), password_hash, name)  # Email en minuscules
             )
             return cursor.lastrowid
         except sqlite3.IntegrityError:
@@ -115,7 +129,7 @@ def authenticate_user(email, password):
     """Authentifie un utilisateur et retourne ses informations"""
     with get_db() as conn:
         cursor = conn.cursor()
-        cursor.execute('SELECT * FROM users WHERE email = ?', (email,))
+        cursor.execute('SELECT * FROM users WHERE email = ?', (email.lower(),))  # Email en minuscules
         user = cursor.fetchone()
         
         if user and verify_password(password, user['password_hash']):

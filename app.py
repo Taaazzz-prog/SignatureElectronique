@@ -76,17 +76,17 @@ def register():
     """Inscription d'un nouvel utilisateur"""
     data = request.get_json()
     
-    email = data.get('email')
-    password = data.get('password')
-    name = data.get('name')
+    email = data.get('email', '').strip()
+    password = data.get('password', '')
+    name = data.get('name', '').strip() if data.get('name') else None
     
     if not email or not password:
         return jsonify({'error': 'Email et mot de passe requis'}), 400
     
-    if len(password) < 6:
-        return jsonify({'error': 'Le mot de passe doit contenir au moins 6 caractères'}), 400
-    
-    user_id = db.create_user(email, password, name)
+    try:
+        user_id = db.create_user(email, password, name)
+    except ValueError as e:
+        return jsonify({'error': str(e)}), 400
     
     if not user_id:
         return jsonify({'error': 'Cet email est déjà utilisé'}), 409
