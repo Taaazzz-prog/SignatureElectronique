@@ -1,13 +1,12 @@
 version: '3.8'
 
 services:
-  # 🐳 APPLICATION SIGNATURE ÉLECTRONIQUE - CONNECTÉE AU TRAEFIK FAILDAILY
+  # 🐳 APPLICATION SIGNATURE ÉLECTRONIQUE - DÉPLOYÉE EN DOCKER SWARM
   signature-app:
+    image: signature-app:latest
     build:
       context: .
       dockerfile: Dockerfile
-    container_name: signature_electronique_app
-    restart: unless-stopped
     volumes:
       - signature_uploads:/app/uploads
       - signature_signed:/app/signed
@@ -19,26 +18,35 @@ services:
       - RECAPTCHA_SECRET_KEY=${RECAPTCHA_SECRET_KEY:-}
       - FLASK_ENV=production
     networks:
-      - faildaily-ssl-network  # Utilise le réseau Traefik de FailDaily
-    labels:
-      # 🌐 Configuration Traefik pour Signature Électronique
-      - "traefik.enable=true"
-      - "traefik.http.routers.signature.rule=Host(`signatureelectronique.taaazzz-prog.fr`)"
-      - "traefik.http.routers.signature.priority=90"
-      - "traefik.http.routers.signature.tls=true"
-      - "traefik.http.routers.signature.tls.certresolver=letsencrypt"
-      - "traefik.http.services.signature.loadbalancer.server.port=5000"
-      # 🔒 Headers de sécurité
-      - "traefik.http.middlewares.signature-security.headers.framedeny=true"
-      - "traefik.http.middlewares.signature-security.headers.contentTypeNosniff=true"
-      - "traefik.http.middlewares.signature-security.headers.browserXssFilter=true"
-      - "traefik.http.middlewares.signature-security.headers.referrerPolicy=same-origin"
-      - "traefik.http.middlewares.signature-security.headers.stsSeconds=31536000"
-      - "traefik.http.middlewares.signature-security.headers.stsIncludeSubdomains=true"
-      - "traefik.http.middlewares.signature-security.headers.customRequestHeaders.X-Forwarded-Proto=https"
-      - "traefik.http.routers.signature.middlewares=signature-security"
-      # 📦 Limite de taille des fichiers
-      - "traefik.http.middlewares.signature-limit.buffering.maxRequestBodyBytes=20971520"  # 20MB
+      - traefik-public
+    deploy:
+      mode: replicated
+      replicas: 1
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        max_attempts: 3
+      labels:
+        # 🌐 Configuration Traefik pour Signature Électronique
+        - "traefik.enable=true"
+        - "traefik.docker.network=traefik-public"
+        - "traefik.http.routers.signature.rule=Host(`signatureelectronique.taaazzz-prog.fr`)"
+        - "traefik.http.routers.signature.priority=90"
+        - "traefik.http.routers.signature.entrypoints=websecure"
+        - "traefik.http.routers.signature.tls=true"
+        - "traefik.http.routers.signature.tls.certresolver=letsencrypt"
+        - "traefik.http.services.signature.loadbalancer.server.port=5000"
+        # 🔒 Headers de sécurité
+        - "traefik.http.middlewares.signature-security.headers.framedeny=true"
+        - "traefik.http.middlewares.signature-security.headers.contentTypeNosniff=true"
+        - "traefik.http.middlewares.signature-security.headers.browserXssFilter=true"
+        - "traefik.http.middlewares.signature-security.headers.referrerPolicy=same-origin"
+        - "traefik.http.middlewares.signature-security.headers.stsSeconds=31536000"
+        - "traefik.http.middlewares.signature-security.headers.stsIncludeSubdomains=true"
+        - "traefik.http.middlewares.signature-security.headers.customRequestHeaders.X-Forwarded-Proto=https"
+        - "traefik.http.routers.signature.middlewares=signature-security"
+        # 📦 Limite de taille des fichiers
+        - "traefik.http.middlewares.signature-limit.buffering.maxRequestBodyBytes=20971520"  # 20MB
 
 # 📦 VOLUMES PERSISTANTS
 volumes:
@@ -53,13 +61,17 @@ volumes:
 
 # 🌐 RÉSEAUX
 networks:
-  faildaily-ssl-network:
-    external: true  # Utilise le réseau existant de FailDaily
-    name: faildaily_faildaily-ssl-network
+  traefik-public:
+    external: true  # Utilise le réseau Traefik Swarm existant
 
 # 🎯 CONFIGURATION:
-# - Connexion au Traefik centralisé de FailDaily (faildaily-traefik-ssl)
+# - Déploiement: Docker Swarm (docker stack deploy)
+# - Connexion au Traefik centralisé (mode Docker Swarm)
+# - Réseau: traefik-public (overlay swarm)
 # - SSL automatique via Let's Encrypt
-# - Domaine: signatureelectronique.taaazzz-prog.fr
+# - Domaine : votre-domaine.com
 # - Port interne: 5000
 # - Serveur: Gunicorn (production-ready)
+#
+# DÉPLOIEMENT:
+#   docker stack deploy -c docker-compose.yml signature

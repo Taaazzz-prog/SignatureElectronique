@@ -19,6 +19,12 @@ import base64
 # Import de la gestion de base de données
 import database as db
 
+# Import de la signature électronique
+from digital_signature import get_digital_signer
+
+# Import de l'API Goodflag
+from goodflag_api import get_goodflag_client
+
 app = Flask(__name__)
 CORS(app, supports_credentials=True)
 app.secret_key = os.environ.get('SECRET_KEY', 'dev-secret-key-change-in-production-' + str(uuid.uuid4()))
@@ -252,16 +258,16 @@ def upload_file():
 @app.route('/api/sign', methods=['POST'])
 @login_optional
 def sign_pdf():
-    """Ajoute une signature au PDF"""
+    """Ajoute une signature électronique certifiée au PDF"""
     data = request.get_json()
     
     file_id = data.get('file_id')
-    signature_data = data.get('signature')  # Base64 image data
+    signature_data = data.get('signature')  # Base64 image data (optionnel, pour apparence visuelle)
     position = data.get('position', {})
     page_num = data.get('page', 0)
     
-    if not file_id or not signature_data:
-        return jsonify({'error': 'Données manquantes'}), 400
+    if not file_id:
+        return jsonify({'error': 'Fichier manquant'}), 400
     
     try:
         # Chemins des fichiers
@@ -269,50 +275,81 @@ def sign_pdf():
         if not os.path.exists(input_path):
             return jsonify({'error': 'Fichier non trouvé'}), 404
         
-        # Sauvegarder la signature
-        signature_filename = f"{uuid.uuid4()}.png"
-        signature_path = os.path.join(SIGNATURE_FOLDER, signature_filename)
+        # Préparer le PDF avec signature visuelle d'abord (si fournie)
+        temp_visual_path = None
+        if signature_data:
+            # Sauvegarder la signature visuelle
+            signature_filename = f"{uuid.uuid4()}.png"
+            signature_path = os.path.join(SIGNATURE_FOLDER, signature_filename)
+            
+            # Décoder l'image base64
+            image_data = signature_data.split(',')[1] if ',' in signature_data else signature_data
+            image_bytes = base64.b64decode(image_data)
+            
+            with open(signature_path, 'wb') as f:
+                f.write(image_bytes)
+            
+            # Créer le PDF avec la signature visuelle
+            packet = io.BytesIO()
+            can = canvas.Canvas(packet, pagesize=letter)
+            
+            # Position de la signature
+            x = position.get('x', 400)
+            y = position.get('y', 50)
+            width = position.get('width', 150)
+            height = position.get('height', 75)
+            
+            can.drawImage(signature_path, x, y, width=width, height=height, mask='auto')
+            can.save()
+            
+            # Fusionner avec le PDF original
+            packet.seek(0)
+            signature_pdf = PdfReader(packet)
+            existing_pdf = PdfReader(input_path)
+            output = PdfWriter()
+            
+            for i, page in enumerate(existing_pdf.pages):
+                if i == page_num:
+                    page.merge_page(signature_pdf.pages[0])
+                output.add_page(page)
+            
+            # Sauvegarder le PDF avec signature visuelle temporaire
+            temp_visual_path = os.path.join(UPLOAD_FOLDER, f"temp_visual_{file_id}")
+            with open(temp_visual_path, 'wb') as output_file:
+                output.write(output_file)
+            
+            # Nettoyer l'image de signature
+            os.remove(signature_path)
+            
+            # Utiliser ce PDF pour la signature électronique
+            input_for_digital = temp_visual_path
+        else:
+            input_for_digital = input_path
         
-        # Décoder l'image base64
-        image_data = signature_data.split(',')[1] if ',' in signature_data else signature_data
-        image_bytes = base64.b64decode(image_data)
-        
-        with open(signature_path, 'wb') as f:
-            f.write(image_bytes)
-        
-        # Créer le PDF avec la signature
-        packet = io.BytesIO()
-        can = canvas.Canvas(packet, pagesize=letter)
-        
-        # Position de la signature (par défaut en bas à droite)
-        x = position.get('x', 400)
-        y = position.get('y', 50)
-        width = position.get('width', 150)
-        height = position.get('height', 75)
-        
-        can.drawImage(signature_path, x, y, width=width, height=height, mask='auto')
-        can.save()
-        
-        # Fusionner avec le PDF original
-        packet.seek(0)
-        signature_pdf = PdfReader(packet)
-        existing_pdf = PdfReader(input_path)
-        output = PdfWriter()
-        
-        for i, page in enumerate(existing_pdf.pages):
-            if i == page_num:
-                page.merge_page(signature_pdf.pages[0])
-            output.add_page(page)
-        
-        # Sauvegarder le PDF signé
+        # Maintenant ajouter la signature électronique certifiée
         signed_filename = f"signed_{file_id}"
         signed_path = os.path.join(SIGNED_FOLDER, signed_filename)
         
-        with open(signed_path, 'wb') as output_file:
-            output.write(output_file)
+        # Obtenir le signataire
+        digital_signer = get_digital_signer()
         
-        # Nettoyer
-        os.remove(signature_path)
+        # Signer électroniquement le PDF
+        success, message = digital_signer.sign_pdf(
+            input_path=input_for_digital,
+            output_path=signed_path,
+            reason="Document signé électroniquement",
+            location="France",
+            visible=False,  # Signature invisible (la signature visuelle est déjà ajoutée)
+            page_num=None,
+            position=None
+        )
+        
+        # Nettoyer le fichier temporaire si créé
+        if temp_visual_path and os.path.exists(temp_visual_path):
+            os.remove(temp_visual_path)
+        
+        if not success:
+            return jsonify({'error': message}), 500
         
         # Ajouter à l'historique si l'utilisateur est connecté
         user_id = None
@@ -325,7 +362,78 @@ def sign_pdf():
         return jsonify({
             'success': True,
             'signed_file_id': signed_filename,
-            'message': 'PDF signé avec succès'
+            'message': 'PDF signé électroniquement avec succès',
+            'signature_type': 'digital_certified'
+        })
+    
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/sign-digital', methods=['POST'])
+def sign_pdf_digitally():
+    """Ajoute une signature électronique certifiée au PDF"""
+    data = request.get_json()
+    
+    file_id = data.get('file_id')
+    signature_data = data.get('signature')  # Image de signature (optionnel pour visible)
+    position = data.get('position', {})
+    page_num = data.get('page')
+    reason = data.get('reason', 'Document signé électroniquement')
+    location = data.get('location', 'France')
+    visible = data.get('visible', True)
+    
+    if not file_id:
+        return jsonify({'error': 'Fichier manquant'}), 400
+    
+    try:
+        # Chemins des fichiers
+        input_path = os.path.join(UPLOAD_FOLDER, file_id)
+        if not os.path.exists(input_path):
+            return jsonify({'error': 'Fichier non trouvé'}), 404
+        
+        # Sauvegarder le PDF signé
+        signed_filename = f"signed_digital_{file_id}"
+        signed_path = os.path.join(SIGNED_FOLDER, signed_filename)
+        
+        # Obtenir le signataire
+        digital_signer = get_digital_signer()
+        
+        # Préparer la position si signature visible
+        position_tuple = None
+        if visible and position:
+            x = position.get('x', 400)
+            y = position.get('y', 50)
+            width = position.get('width', 150)
+            height = position.get('height', 75)
+            position_tuple = (x, y, width, height)
+        
+        # Signer le PDF
+        success, message = digital_signer.sign_pdf(
+            input_path=input_path,
+            output_path=signed_path,
+            reason=reason,
+            location=location,
+            visible=visible,
+            page_num=page_num,
+            position=position_tuple
+        )
+        
+        if not success:
+            return jsonify({'error': message}), 500
+        
+        # Ajouter à l'historique si l'utilisateur est connecté
+        user_id = None
+        if hasattr(request, 'current_user') and request.current_user:
+            user_id = request.current_user['id']
+        
+        original_filename = file_id.split('_', 1)[1] if '_' in file_id else file_id
+        db.add_to_history(user_id, original_filename, signed_filename, signed_path, page_num)
+        
+        return jsonify({
+            'success': True,
+            'signed_file_id': signed_filename,
+            'message': message,
+            'signature_type': 'digital'
         })
     
     except Exception as e:
@@ -355,6 +463,175 @@ def preview_page(file_id, page):
         # Note: Pour une vraie prévisualisation, il faudrait pdf2image
         # Cette version retourne juste un message de succès
         return jsonify({'success': True, 'message': 'Prévisualisation disponible'})
+    
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/verify-signature/<file_id>', methods=['GET'])
+def verify_signature(file_id):
+    """Vérifie les signatures électroniques d'un PDF"""
+    try:
+        # Chercher d'abord dans les fichiers signés, puis dans uploads
+        filepath = os.path.join(SIGNED_FOLDER, file_id)
+        if not os.path.exists(filepath):
+            filepath = os.path.join(UPLOAD_FOLDER, file_id)
+            if not os.path.exists(filepath):
+                return jsonify({'error': 'Fichier non trouvé'}), 404
+        
+        digital_signer = get_digital_signer()
+        success, result = digital_signer.verify_signature(filepath)
+        
+        if success:
+            return jsonify({
+                'success': True,
+                'signatures': result,
+                'count': len(result)
+            })
+        else:
+            return jsonify({'error': result}), 500
+    
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/sign-goodflag', methods=['POST'])
+@login_optional
+def sign_with_goodflag():
+    """Signe un PDF avec l'API Goodflag (signature qualifiée eIDAS)"""
+    data = request.get_json()
+    
+    file_id = data.get('file_id')
+    signature_data = data.get('signature')
+    position = data.get('position', {})
+    page_num = data.get('page', 0)
+    signer_email = data.get('signer_email')
+    signer_name = data.get('signer_name', 'Utilisateur')
+    
+    if not file_id:
+        return jsonify({'error': 'Fichier manquant'}), 400
+    
+    try:
+        goodflag = get_goodflag_client()
+        if not goodflag.is_configured():
+            return jsonify({'error': 'API Goodflag non configurée'}), 503
+        
+        input_path = os.path.join(UPLOAD_FOLDER, file_id)
+        if not os.path.exists(input_path):
+            return jsonify({'error': 'Fichier non trouvé'}), 404
+        
+        # Ajouter signature visuelle si fournie
+        temp_visual_path = None
+        if signature_data:
+            signature_filename = f"{uuid.uuid4()}.png"
+            signature_path = os.path.join(SIGNATURE_FOLDER, signature_filename)
+            
+            image_data = signature_data.split(',')[1] if ',' in signature_data else signature_data
+            image_bytes = base64.b64decode(image_data)
+            
+            with open(signature_path, 'wb') as f:
+                f.write(image_bytes)
+            
+            packet = io.BytesIO()
+            can = canvas.Canvas(packet, pagesize=letter)
+            
+            x = position.get('x', 400)
+            y = position.get('y', 50)
+            width = position.get('width', 150)
+            height = position.get('height', 75)
+            
+            can.drawImage(signature_path, x, y, width=width, height=height, mask='auto')
+            can.save()
+            
+            packet.seek(0)
+            signature_pdf = PdfReader(packet)
+            existing_pdf = PdfReader(input_path)
+            output = PdfWriter()
+            
+            for i, page in enumerate(existing_pdf.pages):
+                if i == page_num:
+                    page.merge_page(signature_pdf.pages[0])
+                output.add_page(page)
+            
+            temp_visual_path = os.path.join(UPLOAD_FOLDER, f"temp_visual_{file_id}")
+            with open(temp_visual_path, 'wb') as output_file:
+                output.write(output_file)
+            
+            os.remove(signature_path)
+            input_for_goodflag = temp_visual_path
+        else:
+            input_for_goodflag = input_path
+        
+        # Email du signataire
+        if not signer_email and hasattr(request, 'current_user') and request.current_user:
+            signer_email = request.current_user.get('email', 'user@example.com')
+            signer_name = request.current_user.get('name', signer_name)
+        elif not signer_email:
+            signer_email = 'user@example.com'
+        
+        # Signer avec Goodflag
+        success, result = goodflag.sign_document_server_side(
+            document_path=input_for_goodflag,
+            signer_email=signer_email,
+            signer_name=signer_name
+        )
+        
+        if temp_visual_path and os.path.exists(temp_visual_path):
+            os.remove(temp_visual_path)
+        
+        if not success:
+            return jsonify({'error': result}), 500
+        
+        # Déplacer vers signed/
+        signed_filename = f"signed_goodflag_{file_id}"
+        signed_path = os.path.join(SIGNED_FOLDER, signed_filename)
+        
+        if os.path.exists(result['signed_path']):
+            os.rename(result['signed_path'], signed_path)
+        
+        # Historique
+        user_id = None
+        if hasattr(request, 'current_user') and request.current_user:
+            user_id = request.current_user['id']
+        
+        original_filename = file_id.split('_', 1)[1] if '_' in file_id else file_id
+        db.add_to_history(user_id, original_filename, signed_filename, signed_path, page_num)
+        
+        return jsonify({
+            'success': True,
+            'signed_file_id': signed_filename,
+            'message': '✅ Signé avec Goodflag (eIDAS qualifié)',
+            'signature_type': 'goodflag_qualified'
+        })
+        
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/goodflag/status', methods=['GET'])
+def goodflag_status():
+    """Vérifie si l'API Goodflag est configurée"""
+    try:
+        goodflag = get_goodflag_client()
+        
+        if not goodflag.is_configured():
+            return jsonify({
+                'configured': False,
+                'available': False,
+                'message': 'Non configurée'
+            })
+        
+        success, message = goodflag.test_connection()
+        
+        return jsonify({
+            'configured': True,
+            'available': success,
+            'message': message
+        })
+        
+    except Exception as e:
+        return jsonify({
+            'configured': False,
+            'available': False,
+            'error': str(e)
+        })
     
     except Exception as e:
         return jsonify({'error': str(e)}), 500

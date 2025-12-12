@@ -99,12 +99,21 @@ def verify_password(password, password_hash):
         if password_hash.startswith(('$2b$', '$2a$', '$2y$')):
             return bcrypt.checkpw(password.encode('utf-8'), password_hash.encode('utf-8'))
         else:
-            # Ancien format SHA-256 avec salt (format: hash:salt)
+            # Ancien format SHA-256 avec salt (format: salt$hash ou hash:salt)
             import hashlib
             try:
-                stored_hash, salt = password_hash.split(':')
-                computed_hash = hashlib.sha256((password + salt).encode('utf-8')).hexdigest()
-                return computed_hash == stored_hash
+                # Essayer le format avec $ (nouveau)
+                if '$' in password_hash:
+                    salt, stored_hash = password_hash.split('$')
+                    computed_hash = hashlib.sha256((password + salt).encode('utf-8')).hexdigest()
+                    return computed_hash == stored_hash
+                # Essayer le format avec : (ancien)
+                elif ':' in password_hash:
+                    stored_hash, salt = password_hash.split(':')
+                    computed_hash = hashlib.sha256((password + salt).encode('utf-8')).hexdigest()
+                    return computed_hash == stored_hash
+                else:
+                    return False
             except ValueError:
                 # Si le format n'est pas reconnu, retourner False
                 return False

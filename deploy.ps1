@@ -1,12 +1,13 @@
-# Script de déploiement automatique pour Signature Électronique
+# Script de déploiement automatique pour Signature Électronique (Docker Swarm)
 # Usage: .\deploy.ps1
 
-$SERVER = "taaazzz@51.75.55.185"
-$REMOTE_PATH = "/home/taaazzz/SignatureElectronique"
+$SERVER = "user@votre-serveur.com"
+$REMOTE_PATH = "/home/user/SignatureElectronique"
 $LOCAL_PATH = "d:\WEB API\SignatureElectronique"
+$STACK_NAME = "signature"
 
-Write-Host "🚀 Déploiement de Signature Électronique sur OVH" -ForegroundColor Cyan
-Write-Host "=================================================" -ForegroundColor Cyan
+Write-Host "🚀 Déploiement de Signature Électronique sur OVH (Docker Swarm)" -ForegroundColor Cyan
+Write-Host "=================================================================" -ForegroundColor Cyan
 Write-Host ""
 
 # Étape 1 : Transfert des fichiers
@@ -34,9 +35,9 @@ if ($LASTEXITCODE -eq 0) {
 
 Write-Host ""
 
-# Étape 3 : Reconstruction et déploiement Docker
-Write-Host "🐳 Étape 3/3 : Déploiement Docker..." -ForegroundColor Yellow
-ssh $SERVER "cd $REMOTE_PATH && docker-compose down && docker-compose build && docker-compose up -d"
+# Étape 3 : Construction de l'image et déploiement Swarm
+Write-Host "🐳 Étape 3/3 : Construction et déploiement Docker Swarm..." -ForegroundColor Yellow
+ssh $SERVER "cd $REMOTE_PATH && docker build -t signature-app:latest . && docker stack deploy -c docker-compose.yml $STACK_NAME"
 
 if ($LASTEXITCODE -eq 0) {
     Write-Host "✅ Déploiement réussi !" -ForegroundColor Green
@@ -46,14 +47,15 @@ if ($LASTEXITCODE -eq 0) {
 }
 
 Write-Host ""
-Write-Host "=================================================" -ForegroundColor Cyan
+Write-Host "=================================================================" -ForegroundColor Cyan
 Write-Host "✨ Déploiement terminé avec succès !" -ForegroundColor Green
 Write-Host ""
 Write-Host "🌐 Application disponible sur :" -ForegroundColor Cyan
-Write-Host "   https://signatureelectronique.taaazzz-prog.fr" -ForegroundColor White
+Write-Host "   https://votre-domaine.com" -ForegroundColor White
 Write-Host ""
-Write-Host "📋 Commandes utiles :" -ForegroundColor Cyan
-Write-Host "   Voir les logs  : ssh $SERVER 'docker logs -f signature_electronique_app'" -ForegroundColor Gray
-Write-Host "   Redémarrer     : ssh $SERVER 'cd $REMOTE_PATH && docker-compose restart'" -ForegroundColor Gray
-Write-Host "   Arrêter        : ssh $SERVER 'cd $REMOTE_PATH && docker-compose down'" -ForegroundColor Gray
+Write-Host "📋 Commandes utiles (Docker Swarm) :" -ForegroundColor Cyan
+Write-Host "   Voir les services : ssh $SERVER 'docker service ls | grep $STACK_NAME'" -ForegroundColor Gray
+Write-Host "   Voir les logs     : ssh $SERVER 'docker service logs -f ${STACK_NAME}_signature-app'" -ForegroundColor Gray
+Write-Host "   Mettre à jour     : ssh $SERVER 'cd $REMOTE_PATH && docker build -t signature-app:latest . && docker service update --image signature-app:latest ${STACK_NAME}_signature-app'" -ForegroundColor Gray
+Write-Host "   Supprimer la stack: ssh $SERVER 'docker stack rm $STACK_NAME'" -ForegroundColor Gray
 Write-Host ""

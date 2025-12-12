@@ -178,18 +178,48 @@ Par défaut, la taille maximale des fichiers est de 16 MB. Pour modifier :
 app.config['MAX_CONTENT_LENGTH'] = 32 * 1024 * 1024  # 32MB
 ```
 
-### Déploiement Docker
+### Déploiement Docker Swarm (Production)
+
+L'application utilise **Docker Swarm** pour un déploiement production robuste avec résilience et haute disponibilité :
 
 ```bash
-# Construction de l'image
-docker-compose build
+# Sur le serveur : Construire l'image
+docker build -t signature-app:latest .
 
-# Lancement
-docker-compose up -d
+# Déployer la stack Swarm
+docker stack deploy -c docker-compose.yml signature
 
-# Arrêt
-docker-compose down
+# Voir les services
+docker service ls | grep signature
+
+# Logs en temps réel
+docker service logs -f signature_signature-app
+
+# Mettre à jour le service
+docker service update --image signature-app:latest signature_signature-app
+
+# Supprimer la stack
+docker stack rm signature
 ```
+
+#### Script de déploiement automatique (Windows)
+
+```powershell
+# Déploie automatiquement sur le serveur
+.\deploy.ps1
+
+# Surveille l'état du service
+.\monitor.ps1
+
+# Régénère le certificat SSL si nécessaire
+.\regenerate-ssl.ps1
+```
+
+#### Configuration Traefik (Swarm)
+- Reverse proxy avec SSL automatique (Let's Encrypt)
+- Réseau : `traefik-public` (overlay swarm)
+- Domaine : `signatureelectronique.taaazzz-prog.fr`
+- Port interne : 5000 (Gunicorn)
 
 ## 🔒 Sécurité
 
@@ -223,6 +253,91 @@ Modifiez le port dans `app.py` ou arrêtez l'application utilisant le port 5000
 
 ### Problèmes de permissions
 Exécutez PowerShell en tant qu'administrateur
+
+### 🔒 Erreur SSL "ERR_CERT_AUTHORITY_INVALID" en production
+
+Si vous rencontrez l'erreur `net::ERR_CERT_AUTHORITY_INVALID` en accédant à l'application, suivez ces étapes :
+
+#### 1️⃣ Diagnostic automatique
+Exécutez le script de diagnostic :
+```powershell
+.\fix-ssl.ps1
+```
+
+#### 2️⃣ Vérifications manuelles sur le serveur
+
+**a) Vérifier que Traefik est actif :**
+```bash
+ssh taaazzz@51.75.55.185
+docker ps | grep traefik
+```
+
+**b) Vérifier les logs Traefik :**
+```bash
+docker logs faildaily-traefik-ssl --tail 100 | grep -i "error\|certificate"
+```
+
+**c) Vérifier le réseau Docker :**
+```bash
+docker network ls | grep faildaily-ssl-network
+```
+
+**d) Vérifier les certificats Let's Encrypt :**
+```bash
+docker exec faildaily-traefik-ssl cat /letsencrypt/acme.json | grep signatureelectronique
+```
+
+#### 3️⃣ Solutions courantes
+
+**Problème : Traefik non démarré**
+```bash
+cd /path/to/faildaily
+docker-compose up -d
+```
+
+**Problème : Certificat non généré**
+```bash
+cd /home/taaazzz/SignatureElectronique
+docker-compose down
+docker-compose up -d
+# Attendre 2-3 minutes pour la génération Let's Encrypt
+docker logs faildaily-traefik-ssl -f
+```
+
+**Problème : DNS mal configuré**
+- Vérifier que `votre-domaine.com` pointe vers l'IP de votre serveur
+- Attendre la propagation DNS (jusqu'à 24h)
+- Tester avec : `nslookup votre-domaine.com`
+
+**Problème : Ports 80/443 non accessibles**
+```bash
+# Vérifier que les ports sont ouverts
+sudo ufw status
+sudo netstat -tulpn | grep ':80\|:443'
+```
+
+#### 4️⃣ Forcer la régénération du certificat
+
+Si rien ne fonctionne :
+```bash
+# Sur le serveur
+docker-compose down
+docker stop faildaily-traefik-ssl
+docker rm faildaily-traefik-ssl
+
+# Supprimer les certificats existants (ATTENTION: faire une sauvegarde avant)
+# docker exec faildaily-traefik-ssl rm /letsencrypt/acme.json
+
+# Redémarrer Traefik puis l'application
+cd /path/to/faildaily && docker-compose up -d
+cd /home/taaazzz/SignatureElectronique && docker-compose up -d
+```
+
+#### 5️⃣ Contourner temporairement (DEV uniquement)
+
+Pour tester localement sans SSL :
+- Dans Chrome : taper `thisisunsafe` sur la page d'erreur
+- Ou accéder via `http://` au lieu de `https://` (si configuré)
 
 ## 📝 Notes
 
