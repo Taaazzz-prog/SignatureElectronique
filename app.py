@@ -19,6 +19,9 @@ import base64
 # Import de la gestion de base de données
 import database as db
 
+# Import du helper pour secrets Docker
+from secrets_helper import read_secret, get_secret_or_default
+
 # Import de la signature électronique
 from digital_signature import get_digital_signer
 
@@ -27,10 +30,20 @@ from goodflag_api import get_goodflag_client
 
 app = Flask(__name__)
 CORS(app, supports_credentials=True)
-app.secret_key = os.environ.get('SECRET_KEY', 'dev-secret-key-change-in-production-' + str(uuid.uuid4()))
 
-# Configuration reCAPTCHA
-RECAPTCHA_SECRET_KEY = os.environ.get('RECAPTCHA_SECRET_KEY', '')
+# Lire les secrets Docker Swarm (ou variables d'env en dev)
+app.secret_key = get_secret_or_default(
+    'signature_secret_key',
+    default_value='dev-secret-key-change-in-production-' + str(uuid.uuid4()),
+    env_var_name='SECRET_KEY'
+)
+
+# Configuration reCAPTCHA depuis secret Docker
+RECAPTCHA_SECRET_KEY = get_secret_or_default(
+    'signature_recaptcha_key',
+    default_value='',
+    env_var_name='RECAPTCHA_SECRET_KEY'
+)
 
 def verify_recaptcha(token):
     """Vérifie le token reCAPTCHA v3"""

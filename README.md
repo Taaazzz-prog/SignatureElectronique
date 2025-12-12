@@ -321,16 +321,10 @@ sudo netstat -tulpn | grep ':80\|:443'
 Si rien ne fonctionne :
 ```bash
 # Sur le serveur
-docker-compose down
-docker stop faildaily-traefik-ssl
-docker rm faildaily-traefik-ssl
+docker stack rm signature
 
-# Supprimer les certificats existants (ATTENTION: faire une sauvegarde avant)
-# docker exec faildaily-traefik-ssl rm /letsencrypt/acme.json
-
-# Redémarrer Traefik puis l'application
-cd /path/to/faildaily && docker-compose up -d
-cd /home/taaazzz/SignatureElectronique && docker-compose up -d
+# Redémarrer Traefik si nécessaire puis redéployer
+docker stack deploy -c docker-compose.yml signature
 ```
 
 #### 5️⃣ Contourner temporairement (DEV uniquement)

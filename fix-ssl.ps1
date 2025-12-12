@@ -17,8 +17,7 @@ if ($traefikStatus) {
     Write-Host "$traefikStatus" -ForegroundColor Gray
 } else {
     Write-Host "❌ PROBLÈME : Traefik n'est pas actif !" -ForegroundColor Red
-    Write-Host "   Solution : Démarrer Traefik d'abord" -ForegroundColor Yellow
-    Write-Host "   Commande : cd /path/to/faildaily && docker-compose up -d" -ForegroundColor Gray
+    Write-Host "   Solution : Vérifier la configuration Traefik" -ForegroundColor Yellow
 }
 
 Write-Host ""
@@ -72,7 +71,7 @@ Write-Host "  1. Démarrer Traefik sur le serveur" -ForegroundColor Gray
 Write-Host "  2. Redéployer l'application avec .\deploy.ps1" -ForegroundColor Gray
 Write-Host ""
 Write-Host "Si le certificat est manquant :" -ForegroundColor Yellow
-Write-Host "  1. Forcer la régénération : ssh $SERVER 'cd $REMOTE_PATH && docker-compose down && docker-compose up -d'" -ForegroundColor Gray
+Write-Host "  1. Forcer la régénération : ssh $SERVER 'cd $REMOTE_PATH && docker stack rm signature && docker stack deploy -c docker-compose.yml signature'" -ForegroundColor Gray
 Write-Host "  2. Attendre 2-3 minutes pour la génération" -ForegroundColor Gray
 Write-Host "  3. Vérifier les logs : ssh $SERVER 'docker logs faildaily-traefik-ssl -f'" -ForegroundColor Gray
 Write-Host ""

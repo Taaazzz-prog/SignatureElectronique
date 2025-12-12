@@ -7,6 +7,7 @@ import os
 import requests
 import json
 from datetime import datetime
+from secrets_helper import read_secret, get_secret_or_default
 
 
 class GoodflagAPI:
@@ -17,11 +18,20 @@ class GoodflagAPI:
         Initialise le client API Goodflag
         
         Args:
-            api_token: Token d'authentification API (depuis les variables d'environnement si non fourni)
-            api_url: URL de base de l'API (depuis les variables d'environnement si non fourni)
+            api_token: Token d'authentification API (depuis Docker Secret si non fourni)
+            api_url: URL de base de l'API (depuis Docker Secret ou env si non fourni)
         """
-        self.api_token = api_token or os.environ.get('GOODFLAG_API_TOKEN')
-        self.api_url = api_url or os.environ.get('GOODFLAG_API_URL', 'https://api.goodflag.com/v1')
+        # Lire depuis Docker Secret en priorité, puis env var
+        self.api_token = api_token or get_secret_or_default(
+            'signature_goodflag_token',
+            default_value='',
+            env_var_name='GOODFLAG_API_TOKEN'
+        )
+        self.api_url = api_url or get_secret_or_default(
+            'signature_goodflag_url',
+            default_value='https://api.goodflag.com/v1',
+            env_var_name='GOODFLAG_API_URL'
+        )
         
         if not self.api_token:
             print("⚠️  Token API Goodflag non configuré. Utilisez les variables d'environnement.")

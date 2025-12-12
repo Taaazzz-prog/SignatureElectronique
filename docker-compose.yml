@@ -3,19 +3,18 @@ version: '3.8'
 services:
   # 🐳 APPLICATION SIGNATURE ÉLECTRONIQUE - DÉPLOYÉE EN DOCKER SWARM
   signature-app:
-    image: signature-app:latest
-    build:
-      context: .
-      dockerfile: Dockerfile
+    image: ghcr.io/taaazzz-prog/signatureelectronique:latest
     volumes:
       - signature_uploads:/app/uploads
       - signature_signed:/app/signed
       - signature_signatures:/app/signatures
       - signature_database:/app/data
+    secrets:
+      - signature_secret_key
+      - signature_recaptcha_key
+      - signature_goodflag_token
     environment:
       - DATABASE_PATH=/app/data/signature_app.db
-      - SECRET_KEY=${SECRET_KEY:-dev-secret-key-please-change-in-production}
-      - RECAPTCHA_SECRET_KEY=${RECAPTCHA_SECRET_KEY:-}
       - FLASK_ENV=production
     networks:
       - traefik-public
@@ -64,8 +63,18 @@ networks:
   traefik-public:
     external: true  # Utilise le réseau Traefik Swarm existant
 
+# 🔐 SECRETS DOCKER SWARM
+secrets:
+  signature_secret_key:
+    external: true  # Créé avec: echo "XXX" | docker secret create signature_secret_key -
+  signature_recaptcha_key:
+    external: true  # Créé avec: echo "XXX" | docker secret create signature_recaptcha_key -
+  signature_goodflag_token:
+    external: true  # Créé avec: echo "XXX" | docker secret create signature_goodflag_token -
+
 # 🎯 CONFIGURATION:
 # - Déploiement: Docker Swarm (docker stack deploy)
+# - Image: GitHub Container Registry (ghcr.io)
 # - Connexion au Traefik centralisé (mode Docker Swarm)
 # - Réseau: traefik-public (overlay swarm)
 # - SSL automatique via Let's Encrypt
