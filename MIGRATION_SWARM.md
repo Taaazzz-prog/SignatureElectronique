@@ -45,7 +45,7 @@ git push origin main
 
 ```bash
 # Se connecter au serveur
-ssh taaazzz@51.75.55.185
+ssh user@your-server
 
 # Créer les secrets (UNE SEULE FOIS)
 # SECRET_KEY : Générer avec: python -c "import secrets; print(secrets.token_urlsafe(32))"
@@ -111,10 +111,10 @@ docker service ps signature_signature-app
 
 ```bash
 # Logs en temps réel
-ssh taaazzz@51.75.55.185 'docker service logs -f signature_signature-app'
+ssh user@your-server 'docker service logs -f signature_signature-app'
 
 # Vérifier que les secrets sont montés
-ssh taaazzz@51.75.55.185 'docker exec $(docker ps -q -f name=signature_signature-app) ls -la /run/secrets/'
+ssh user@your-server 'docker exec $(docker ps -q -f name=signature_signature-app) ls -la /run/secrets/'
 
 # Résultat attendu :
 # -r--r--r-- 1 root root  32 Dec 12 10:00 signature_secret_key
@@ -183,7 +183,7 @@ git push origin main
 
 ### Méthode recommandée (sans downtime)
 ```bash
-ssh taaazzz@51.75.55.185
+ssh user@your-server
 
 # 1. Créer un nouveau secret avec suffixe _v2
 echo "NOUVEAU_SECRET" | docker secret create signature_secret_key_v2 -
