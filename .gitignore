@@ -1,42 +1,5 @@
-# .gitignore pour le REPOSITORY PUBLIC
-# Ignore tout ce qui est sensible ou de déploiement
-
-# ============================================================================
-# 🔴 FICHIERS DE CONFIGURATION ET DÉPLOIEMENT (PRIVÉ UNIQUEMENT)
-# ============================================================================
-
-# Scripts PowerShell de déploiement
-deploy*.ps1
-build-and-push.ps1
-monitor.ps1
-fix-ssl.ps1
-regenerate-ssl.ps1
-
-# Configuration Docker
-docker-compose.yml
-docker-compose.prod.yml
-
-# Documentation opérationnelle
-CHANGEMENTS.md
-GOODFLAG_INTEGRATION.md
-MIGRATION_SWARM.md
-STATUS.md
-SECURITY_AUDIT.md
-
-# Dossiers de configuration et organisation
-config/
-scripts/
-documentation/
-infrastructure/
-secrets/
-monitoring/
-backups/
-docs/
-.projectstructure
-
-# ============================================================================
-# 📝 FICHIERS TOUJOURS IGNORÉS
-# ============================================================================
+# .gitignore pour le REPOSITORY PRIVÉ
+# Ignore seulement les fichiers générés et données sensibles
 
 # Environnement virtuel Python
 venv/
@@ -56,14 +19,6 @@ signed/
 signatures/
 *.pdf
 
-# Fichiers de configuration et secrets
-.env
-.env.local
-.env.*.local
-*.key
-*.pem
-*.crt
-
 # Fichiers de configuration IDE
 .vscode/
 .idea/
@@ -80,13 +35,19 @@ logs/
 Thumbs.db
 desktop.ini
 
-# Fichiers de base de données
+# Fichiers de base de données (trop gros pour Git)
 *.db
 *.sqlite
 *.sqlite3
 signature_app.db
 
-# Backups
+# Backups de DB (trop gros)
+backups/*.db
+backups/*.sql
+backups/*.tar.gz
+backups/*.zip
+
+# Fichiers temporaires
 *.bak
 *.backup
 *.tmp
@@ -94,3 +55,8 @@ signature_app.db
 # Fichiers de test
 test_uploads/
 test_data/
+
+# ⚠️ IMPORTANT : Le .env contient les vrais secrets
+# Garder ce fichier dans Git pour backup, mais soyez conscient
+# qu'il contient des secrets. Le repository DOIT être PRIVÉ !
+# .env

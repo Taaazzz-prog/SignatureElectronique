@@ -1,0 +1,56 @@
+# 🔒 Push vers le repository PRIVÉ
+# Usage: .\push-private.ps1 [-Message "commit message"]
+
+param(
+    [string]$Message = "Update configuration"
+)
+
+$ErrorActionPreference = "Stop"
+
+Write-Host "`n🔒 PUSH VERS LE REPOSITORY PRIVÉ" -ForegroundColor Magenta
+Write-Host "=========================================`n" -ForegroundColor Magenta
+
+# 1. Sauvegarder le .gitignore actuel
+Write-Host "1️⃣ Configuration pour le privé..." -ForegroundColor Yellow
+if (Test-Path ".gitignore") {
+    Copy-Item ".gitignore" ".gitignore.backup" -Force
+}
+
+# 2. Utiliser le .gitignore privé
+Copy-Item ".gitignore-private" ".gitignore" -Force
+Write-Host "   ✅ .gitignore privé activé`n" -ForegroundColor Green
+
+# 3. Afficher ce qui sera commité
+Write-Host "2️⃣ Fichiers qui seront pushés (CODE + CONFIG):" -ForegroundColor Yellow
+git status --short
+Write-Host ""
+
+# 4. Confirmation
+$confirm = Read-Host "Continuer le push vers PRIVÉ? (o/N)"
+if ($confirm -ne "o") {
+    Write-Host "`n❌ Annulé" -ForegroundColor Red
+    # Restaurer le .gitignore
+    if (Test-Path ".gitignore.backup") {
+        Move-Item ".gitignore.backup" ".gitignore" -Force
+    }
+    exit 0
+}
+
+# 5. Add, commit, push
+Write-Host "`n3️⃣ Commit et push..." -ForegroundColor Yellow
+try {
+    git add .
+    git commit -m "🔒 $Message"
+    git push private main
+    Write-Host "`n✅ Push vers PRIVÉ réussi !" -ForegroundColor Green
+    Write-Host "   https://github.com/Taaazzz-prog/SignatureElectronique-private`n" -ForegroundColor Gray
+} catch {
+    Write-Host "`n⚠️ Erreur lors du push: $_" -ForegroundColor Red
+}
+
+# 6. Restaurer le .gitignore original
+if (Test-Path ".gitignore.backup") {
+    Move-Item ".gitignore.backup" ".gitignore" -Force
+}
+
+Write-Host "=========================================`n" -ForegroundColor Magenta
