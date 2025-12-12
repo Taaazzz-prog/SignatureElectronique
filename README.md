@@ -1,98 +1,88 @@
-# 🔒 SignatureElectronique - Configuration Privée
+# 📝 SignatureElectronique
 
-⚠️ **REPOSITORY PRIVÉ** - Ne jamais rendre public
+Application web Flask pour la signature électronique de documents PDF.
 
-## 📦 À propos
+## 📋 Fonctionnalités
 
-Ce repository contient la **configuration de production** et les **secrets** pour l'application SignatureElectronique.
+- ✍️ Signature de documents PDF
+- 🖼️ Signature graphique (dessin à la main)
+- 📄 Téléchargement des documents signés
+- 🔐 Authentification utilisateur
+- 📊 Historique des signatures
+- 🔒 Sécurité ReCaptcha
 
-**Code source public** : https://github.com/Taaazzz-prog/SignatureElectronique
+## 🚀 Installation
 
----
+### Prérequis
+
+- Python 3.10+
+- Docker (optionnel)
+
+### Installation locale
+
+```bash
+# Cloner le repository
+git clone https://github.com/Taaazzz-prog/SignatureElectronique.git
+cd SignatureElectronique
+
+# Créer un environnement virtuel
+python -m venv .venv
+source .venv/bin/activate  # Windows: .venv\Scripts\activate
+
+# Installer les dépendances
+pip install -r requirements.txt
+
+# Lancer l'application
+python src/app.py
+```
+
+### Avec Docker
+
+```bash
+# Build l'image
+docker build -t signatureelectronique .
+
+# Lancer le conteneur
+docker run -p 5000:5000 signatureelectronique
+```
 
 ## 📁 Structure
 
 ```
-SignatureElectronique-private/
-├── .env                           # Secrets de production (SECRET_KEY, RECAPTCHA, GOODFLAG)
-├── docker-compose.prod.yml        # Configuration Swarm avec VRAI domaine
-├── deploy-swarm-prod.ps1          # Script de déploiement avec VRAIE adresse SSH
-├── build-and-push-prod.ps1        # Build et push avec config réelle
-│
-├── infrastructure/
-│   ├── server-setup.md            # Configuration serveur OVH (IP, SSH, domaine)
-│   └── traefik-config.md          # Configuration Traefik détaillée
-│
-├── secrets/
-│   ├── create-secrets.ps1         # Création des Docker Secrets
-│   ├── rotate-secrets.ps1         # Rotation des secrets
-│   └── README.md                  # Documentation gestion des secrets
-│
-├── monitoring/
-│   ├── monitor-prod.ps1           # Monitoring avec vraies adresses
-│   └── alerting.md                # Configuration des alertes
-│
-├── backups/
-│   ├── backup-db.ps1              # Scripts de backup
-│   └── restore-db.ps1             # Scripts de restauration
-│
-└── docs/
-    ├── DEPLOYMENT_PROD.md         # Procédures de déploiement
-    ├── TROUBLESHOOTING.md         # Résolution de problèmes
-    └── RUNBOOK.md                 # Documentation opérationnelle
+SignatureElectronique/
+├── src/                    # Code source
+│   ├── app.py             # Application Flask
+│   ├── database.py        # Gestion BDD
+│   └── digital_signature.py  # Logique de signature
+├── templates/             # Templates HTML
+├── static/               # CSS et JavaScript
+├── requirements.txt      # Dépendances Python
+└── Dockerfile           # Configuration Docker
 ```
+
+## 🛠️ Technologies
+
+- **Backend:** Flask, SQLite
+- **Signature PDF:** pyHanko
+- **Frontend:** HTML, CSS, JavaScript
+- **Sécurité:** Google ReCaptcha
+
+## 📦 Déploiement
+
+L'image Docker est automatiquement buildée via GitHub Actions et disponible sur GHCR.
+
+```bash
+docker pull ghcr.io/taaazzz-prog/signatureelectronique:latest
+```
+
+## 📄 Licence
+
+Projet personnel.
+
+## 👤 Auteur
+
+**Taaazzz-prog**
 
 ---
 
-## 🚀 Utilisation
-
-### Déploiement initial
-
-```powershell
-# 1. Créer les secrets Docker sur le serveur
-.\secrets\create-secrets.ps1
-
-# 2. Déployer la stack
-.\deploy-swarm-prod.ps1
-```
-
-### Mise à jour
-
-```powershell
-# Le code est automatiquement buildé par GitHub Actions
-# Il suffit de mettre à jour le service
-.\deploy-swarm-prod.ps1 -SkipPull
-```
-
-### Monitoring
-
-```powershell
-# Surveiller les logs et services
-.\monitoring\monitor-prod.ps1
-```
-
----
-
-## 🔐 Sécurité
-
-- ✅ Repository **PRIVÉ** sur GitHub
-- ✅ Secrets chiffrés avec Docker Secrets
-- ✅ Accès SSH sécurisé (mot de passe fort)
-- ✅ HTTPS avec Let's Encrypt
-
-⚠️ **Ne jamais commit** :
-- Fichiers de backup de base de données (*.db, *.sql)
-- Logs avec données sensibles
-- Clés SSL/TLS locales
-
----
-
-## 📞 Contact
-
-- **Serveur** : OVH Dédié
-- **Domaine** : signatureelectronique.taaazzz-prog.fr
-- **IP** : 51.75.55.185
-
----
-
-**Dernière mise à jour** : 13 décembre 2025
+*Application de signature électronique PDF sécurisée*
