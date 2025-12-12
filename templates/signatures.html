@@ -1,0 +1,98 @@
+{% extends "base.html" %}
+
+{% block title %}Mes Signatures - Signature PDF{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/signatures.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1>💾 Mes signatures</h1>
+    <p class="subtitle">Gérez vos signatures sauvegardées</p>
+</div>
+
+<!-- Create New Signature -->
+<div class="card">
+    <div class="card-title">✏️ Créer une nouvelle signature</div>
+    <p style="margin-bottom: 1rem; color: var(--text-light);">
+        Dessinez votre signature ci-dessous et sauvegardez-la pour une réutilisation rapide
+    </p>
+    
+    <canvas id="createSignatureCanvas"></canvas>
+    
+    <div class="canvas-controls">
+        <button class="btn btn-secondary btn-small" onclick="clearCreateCanvas()">
+            🗑️ Effacer
+        </button>
+        <button class="btn btn-secondary btn-small" onclick="undoCreateCanvas()">
+            ↶ Annuler
+        </button>
+    </div>
+
+    <div id="saveSignatureForm" class="hidden" style="margin-top: 1rem;">
+        <input 
+            type="text" 
+            id="signatureName" 
+            class="control-input" 
+            placeholder="Nom de la signature (ex: Signature professionnelle)"
+            style="width: 100%; margin-bottom: 1rem;"
+        >
+        <div style="text-align: center;">
+            <button class="btn btn-success" onclick="saveSignature()">
+                💾 Sauvegarder la signature
+            </button>
+            <button class="btn btn-secondary" onclick="cancelSaveSignature()">
+                ❌ Annuler
+            </button>
+        </div>
+    </div>
+
+    <div id="saveSignatureBtn" style="text-align: center; margin-top: 1rem;">
+        <button class="btn btn-primary" onclick="showSaveSignatureForm()">
+            💾 Sauvegarder cette signature
+        </button>
+    </div>
+</div>
+
+<!-- Saved Signatures List -->
+<div class="card">
+    <div class="card-title">📋 Signatures sauvegardées</div>
+    
+    <div id="noSignaturesMessage" class="empty-state">
+        <div style="font-size: 3rem; margin-bottom: 1rem;">📝</div>
+        <p style="color: var(--text-light);">
+            Vous n'avez pas encore de signature sauvegardée.<br>
+            Créez-en une ci-dessus pour commencer !
+        </p>
+    </div>
+
+    <div id="savedSignaturesList" class="signatures-grid hidden"></div>
+</div>
+
+<!-- Delete Confirmation Modal -->
+<div id="deleteModal" class="modal hidden">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2>🗑️ Confirmer la suppression</h2>
+            <button class="modal-close" onclick="closeDeleteModal()">&times;</button>
+        </div>
+        <div class="modal-body">
+            <p>Êtes-vous sûr de vouloir supprimer cette signature ?</p>
+            <p style="color: var(--text-light); font-size: 0.875rem;">Cette action est irréversible.</p>
+        </div>
+        <div class="modal-actions">
+            <button class="btn btn-danger" id="confirmDeleteBtn">
+                🗑️ Supprimer
+            </button>
+            <button class="btn btn-secondary" onclick="closeDeleteModal()">
+                Annuler
+            </button>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/signatures.js') }}"></script>
+{% endblock %}

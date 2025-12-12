@@ -1,0 +1,97 @@
+{% extends "base.html" %}
+
+{% block title %}Signer un PDF - Signature PDF{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/index.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1>✍️ Signer un document PDF</h1>
+    <p class="subtitle">Chargez votre PDF et ajoutez votre signature en quelques clics</p>
+</div>
+
+<!-- Upload Section -->
+<div class="card">
+    <div class="card-title">📄 1. Chargez votre PDF</div>
+    <div class="upload-zone" id="uploadZone">
+        <div class="upload-icon">📄</div>
+        <p style="font-weight: 600; margin-bottom: 0.5rem;">
+            Glissez-déposez votre PDF ici
+        </p>
+        <p style="color: var(--text-light); font-size: 0.875rem; margin-bottom: 1rem;">
+            ou
+        </p>
+        <label for="pdfFile" class="btn btn-primary">
+            Choisir un fichier
+        </label>
+        <input type="file" id="pdfFile" accept=".pdf" class="hidden">
+    </div>
+    <div id="pdfInfo" class="hidden" style="margin-top: 1rem;"></div>
+</div>
+
+<!-- Signature Section -->
+<div id="signatureSection" class="card hidden">
+    <div class="card-title">✍️ 2. Créez votre signature</div>
+    
+    <!-- Signature Tabs for connected users -->
+    <div id="signatureTypeTabs" class="tabs hidden">
+        <button class="tab active" onclick="switchSignatureType('draw')">✏️ Dessiner</button>
+        <button class="tab" onclick="switchSignatureType('saved')">💾 Mes signatures</button>
+    </div>
+
+    <!-- Draw Signature -->
+    <div id="drawSignature">
+        <canvas id="signatureCanvas"></canvas>
+        <div class="canvas-controls">
+            <button class="btn btn-secondary btn-small" onclick="clearCanvas()">
+                🗑️ Effacer
+            </button>
+            <button class="btn btn-secondary btn-small" onclick="undoLast()">
+                ↶ Annuler
+            </button>
+            <button class="btn btn-secondary btn-small hidden" id="saveSignatureBtn" onclick="showSaveSignatureDialog()">
+                💾 Sauvegarder
+            </button>
+        </div>
+    </div>
+
+    <!-- Saved Signatures Selection -->
+    <div id="savedSignaturesSelection" class="hidden">
+        <div id="savedSignaturesSelect" class="signatures-grid"></div>
+    </div>
+
+    <!-- Position Controls -->
+    <div class="position-grid">
+        <div class="control-group">
+            <label class="control-label">Page</label>
+            <select id="pageSelect" class="control-input">
+                <option value="0">Page 1</option>
+            </select>
+        </div>
+        <div class="control-group">
+            <label class="control-label">Position X</label>
+            <input type="number" id="xPosition" class="control-input" value="400" min="0" max="550">
+        </div>
+        <div class="control-group">
+            <label class="control-label">Position Y</label>
+            <input type="number" id="yPosition" class="control-input" value="50" min="0" max="750">
+        </div>
+        <div class="control-group">
+            <label class="control-label">Largeur</label>
+            <input type="number" id="signWidth" class="control-input" value="150" min="50" max="300">
+        </div>
+    </div>
+
+    <div style="text-align: center; margin-top: 1.5rem;">
+        <button class="btn btn-success" id="signBtn" onclick="signPDF()">
+            ✅ Signer le PDF
+        </button>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/index.js') }}"></script>
+{% endblock %}

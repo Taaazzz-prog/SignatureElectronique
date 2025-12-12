@@ -1,0 +1,87 @@
+{% extends "base.html" %}
+
+{% block title %}Historique - Signature PDF{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/history.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1>📜 Historique des signatures</h1>
+    <p class="subtitle">Retrouvez tous vos documents signés</p>
+</div>
+
+<!-- Filters -->
+<div class="card">
+    <div class="filters-row">
+        <div class="control-group" style="flex: 1;">
+            <label class="control-label">🔍 Rechercher</label>
+            <input 
+                type="text" 
+                id="searchInput" 
+                class="control-input" 
+                placeholder="Nom du fichier..."
+                onkeyup="filterHistory()"
+            >
+        </div>
+        <div class="control-group" style="flex: 0 0 200px;">
+            <label class="control-label">📅 Période</label>
+            <select id="periodFilter" class="control-input" onchange="filterHistory()">
+                <option value="all">Toute la période</option>
+                <option value="today">Aujourd'hui</option>
+                <option value="week">Cette semaine</option>
+                <option value="month">Ce mois</option>
+                <option value="year">Cette année</option>
+            </select>
+        </div>
+        <div class="control-group" style="flex: 0 0 150px;">
+            <label class="control-label">📊 Tri</label>
+            <select id="sortOrder" class="control-input" onchange="sortHistory()">
+                <option value="desc">Plus récents</option>
+                <option value="asc">Plus anciens</option>
+            </select>
+        </div>
+    </div>
+</div>
+
+<!-- History List -->
+<div class="card">
+    <div id="noHistoryMessage" class="empty-state">
+        <div style="font-size: 3rem; margin-bottom: 1rem;">📄</div>
+        <p style="color: var(--text-light);">
+            Aucun document signé pour le moment.<br>
+            Commencez par <a href="/" style="color: var(--primary);">signer votre premier PDF</a> !
+        </p>
+    </div>
+
+    <div id="historyList" class="history-list hidden"></div>
+</div>
+
+<!-- Statistics Card -->
+<div class="card">
+    <div class="card-title">📊 Statistiques</div>
+    <div class="stats-grid">
+        <div class="stat-card">
+            <div class="stat-value" id="statTotal">0</div>
+            <div class="stat-label">Documents signés</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-value" id="statThisMonth">0</div>
+            <div class="stat-label">Ce mois-ci</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-value" id="statThisWeek">0</div>
+            <div class="stat-label">Cette semaine</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-value" id="statToday">0</div>
+            <div class="stat-label">Aujourd'hui</div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/history.js') }}"></script>
+{% endblock %}
