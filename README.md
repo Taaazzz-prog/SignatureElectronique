@@ -4,375 +4,161 @@
 ![Flask](https://img.shields.io/badge/Flask-3.0-green)
 ![Docker](https://img.shields.io/badge/Docker-Ready-blue)
 ![Security](https://img.shields.io/badge/Security-reCAPTCHA_v3-red)
-![License](https://img.shields.io/badge/License-MIT-yellow)
 
-Application web sécurisée pour signer des fichiers PDF électroniquement avec gestion de comptes utilisateurs.
-
-## 🔒 Configuration de Production
-
-⚠️ **Repository privé séparé** : La configuration de production (secrets, adresses réelles, infrastructure) se trouve dans un repository privé distinct pour des raisons de sécurité.
-
-- 🔐 **Secrets** : Docker Secrets avec chiffrement AES-256
-- 🌐 **Déploiement** : Docker Swarm sur serveur dédié
-- 📋 **Documentation** : Procédures opérationnelles complètes
-
-**Pour déployer en production**, consultez le repository privé avec la configuration réelle.
-
----
-
-## 🌐 Application
-
-Application déployée en production avec Docker Swarm sur serveur dédié.
+Application web pour signer des fichiers PDF électroniquement avec gestion de comptes utilisateurs.
 
 ---
 
 ## 🚀 Fonctionnalités
 
-### Signature de documents
-- ✅ Upload de fichiers PDF (drag & drop ou sélection)
-- ✍️ Création de signature à la souris ou au tactile
+- ✍️ Signature de documents PDF avec canvas interactif
 - 📍 Positionnement personnalisable de la signature
-- 📄 Support multi-pages
-- 💾 Téléchargement automatique du PDF signé
-- 🎨 Interface moderne et intuitive avec mode sombre
+- 👤 Gestion de comptes utilisateurs (inscription/connexion)
+- 💾 Sauvegarde et réutilisation de signatures
+- 📜 Historique des documents signés
+- 🛡️ Protection anti-bot avec reCAPTCHA v3
+- 🔐 Sécurité : hashing bcrypt, secrets chiffrés
+- 🐳 Déploiement avec Docker Swarm
 
-### Gestion de compte
-- 👤 Inscription et connexion sécurisées
-- 📧 Validation d'email avec regex
-- 🔐 Hashing bcrypt pour les mots de passe
-- 📊 Historique des signatures
-- 📈 Statistiques personnalisées
-- ⚙️ Préférences personnalisables (mode sombre, notifications, auto-save)
+---
 
-### Sécurité
-- 🛡️ Protection anti-bot avec Google reCAPTCHA v3
-- 🔒 Hashing bcrypt (12 rounds) pour tous les mots de passe
-- 🔄 Migration automatique des anciens mots de passe SHA-256
-- 🔑 SECRET_KEY pour la sécurité des sessions
-- ✅ Validation stricte des emails
+## 🛠️ Stack Technique
 
-## 📋 Prérequis
+- **Backend** : Python 3.11, Flask 3.0
+- **Base de données** : SQLite
+- **Signature PDF** : pyHanko, reportlab
+- **Sécurité** : bcrypt, reCAPTCHA v3
+- **Frontend** : HTML5, CSS3, JavaScript (Vanilla)
+- **Conteneurisation** : Docker, Docker Swarm
+- **CI/CD** : GitHub Actions → GHCR
 
-- Python 3.11 ou supérieur
-- pip (gestionnaire de paquets Python)
-- Docker (optionnel, pour le déploiement)
-- Compte Google reCAPTCHA v3 (pour la protection anti-bot)
+---
 
-## 🔧 Installation
+## 📦 Installation locale
 
-1. **Cloner ou naviguer vers le projet**
-```powershell
-cd "d:\WEB API\SignatureElectronique"
-```
+### Prérequis
+- Python 3.11+
+- pip
 
-2. **Créer un environnement virtuel (recommandé)**
-```powershell
-python -m venv venv
-.\venv\Scripts\Activate.ps1
-```
+### Installation
 
-3. **Installer les dépendances**
-```powershell
+```bash
+# Cloner le repository
+git clone https://github.com/Taaazzz-prog/SignatureElectronique.git
+cd SignatureElectronique
+
+# Créer un environnement virtuel
+python -m venv .venv
+.venv\Scripts\activate  # Windows
+# source .venv/bin/activate  # Linux/Mac
+
+# Installer les dépendances
 pip install -r requirements.txt
-```
 
-4. **Configurer les variables d'environnement**
-```powershell
-# Copier le fichier d'exemple
-Copy-Item .env.example .env
+# Créer le fichier .env
+cp .env.example .env
+# Éditer .env et configurer vos secrets
 
-# Éditer .env et configurer :
-# - SECRET_KEY (générer avec: python -c "import secrets; print(secrets.token_urlsafe(32))")
-# - RECAPTCHA_SECRET_KEY (obtenir sur https://www.google.com/recaptcha/admin/create)
-```
-
-## ▶️ Lancement
-
-1. **Démarrer le serveur**
-```powershell
+# Lancer l'application
 python app.py
 ```
 
-2. **Ouvrir votre navigateur**
+L'application sera accessible sur http://localhost:5000
+
+---
+
+## 🔐 Configuration
+
+Créer un fichier `.env` à la racine :
+
+```env
+SECRET_KEY=votre-cle-secrete-unique
+RECAPTCHA_SECRET_KEY=votre-cle-recaptcha
+GOODFLAG_API_TOKEN=optionnel
+DATABASE_PATH=signature_app.db
+FLASK_ENV=development
+DEBUG=True
 ```
-http://localhost:5000
+
+**Générer une SECRET_KEY** :
+```python
+python -c "import secrets; print(secrets.token_urlsafe(32))"
 ```
 
-## 📖 Utilisation
+**Obtenir une clé reCAPTCHA** : https://www.google.com/recaptcha/admin/create
 
-### Création de compte
-1. Cliquez sur "Inscription" dans la navigation
-2. Remplissez le formulaire (nom, email, mot de passe)
-3. La protection reCAPTCHA v3 vérifie automatiquement que vous n'êtes pas un bot
-4. Connectez-vous avec vos identifiants
+---
 
-### Signature de documents
-1. **Charger un PDF**
-   - Glissez-déposez votre fichier PDF dans la zone prévue
-   - Ou cliquez sur "Choisir un fichier PDF"
+## 🐳 Docker
 
-2. **Créer votre signature**
-   - Dessinez votre signature sur le canvas blanc
-   - Utilisez "Effacer" pour recommencer
-   - Utilisez "Annuler" pour supprimer le dernier trait
+### Build local
 
-3. **Configurer la position**
-   - Sélectionnez la page à signer
-   - Ajustez les positions X et Y
-   - Modifiez la largeur si nécessaire
+```bash
+docker build -t signature-app .
+docker run -p 5000:5000 signature-app
+```
 
-4. **Signer**
-   - Cliquez sur "Signer le PDF"
-   - Le fichier signé se téléchargera automatiquement
+### Image publiée
 
-### Gestion de compte
-- **Historique** : Consultez toutes vos signatures passées
-- **Statistiques** : Visualisez vos statistiques de signature
-- **Compte** : Gérez vos informations et préférences
-  - Mode sombre/clair
-  - Notifications
-  - Auto-save des signatures
-  - Mode tactile optimisé
+L'image est automatiquement buildée par GitHub Actions et publiée sur GitHub Container Registry :
 
-## 📁 Structure du projet
+```bash
+docker pull ghcr.io/taaazzz-prog/signatureelectronique:latest
+```
+
+---
+
+## 🏗️ Structure du projet
 
 ```
 SignatureElectronique/
-├── app.py                      # Serveur Flask (API backend)
-├── database.py                 # Gestion base de données SQLite
-├── templates/
-│   ├── index.html             # Page d'accueil
-│   ├── base.html              # Template de base
-│   ├── account.html           # Page compte utilisateur
-│   ├── history.html           # Historique des signatures
-│   └── stats.html             # Statistiques
-├── static/
-│   ├── css/                   # Feuilles de style (+ mode sombre)
-│   └── js/                    # Scripts JavaScript
-├── uploads/                   # PDFs uploadés (auto, ignoré git)
-├── signed/                    # PDFs signés (auto, ignoré git)
-├── signatures/                # Signatures temporaires (auto, ignoré git)
-├── .env                       # Variables d'environnement (SECRET!)
-├── .env.example               # Template de configuration
-├── docker-compose.yml         # Configuration Docker
-├── Dockerfile                 # Image Docker
-├── requirements.txt           # Dépendances Python
-└── README.md                  # Documentation
+├── app.py                    # Application Flask principale
+├── database.py               # Gestion de la base de données
+├── digital_signature.py      # Signature PDF avec pyHanko
+├── goodflag_api.py          # API Goodflag pour signatures qualifiées
+├── secrets_helper.py        # Gestion des secrets (Docker Secrets / env vars)
+├── templates/               # Templates HTML
+│   ├── index_new.html
+│   ├── signatures.html
+│   ├── history.html
+│   └── account.html
+├── static/                  # CSS et JavaScript
+│   ├── css/
+│   └── js/
+├── Dockerfile
+├── requirements.txt
+└── .env.example
 ```
 
-## 🛠️ Configuration
-
-### Variables d'environnement (.env)
-
-```bash
-# Clé secrète Flask (OBLIGATOIRE EN PRODUCTION)
-SECRET_KEY=votre-cle-secrete-unique-32-caracteres
-
-# Clé secrète reCAPTCHA v3 (RECOMMANDÉ)
-RECAPTCHA_SECRET_KEY=votre-cle-secrete-recaptcha
-
-# Chemin de la base de données
-DATABASE_PATH=/app/data/signature_app.db
-```
-
-### Configuration reCAPTCHA v3
-
-1. Créez un compte sur [Google reCAPTCHA Admin](https://www.google.com/recaptcha/admin/create)
-2. Choisissez **reCAPTCHA v3**
-3. Ajoutez vos domaines (localhost pour dev, votre domaine pour prod)
-4. Récupérez :
-   - **Site Key** (publique) → À mettre dans `static/js/common.js`
-   - **Secret Key** (privée) → À mettre dans `.env`
-
-### Limites de fichiers
-Par défaut, la taille maximale des fichiers est de 16 MB. Pour modifier :
-```python
-app.config['MAX_CONTENT_LENGTH'] = 32 * 1024 * 1024  # 32MB
-```
-
-### Déploiement Docker Swarm (Production)
-
-L'application utilise **Docker Swarm** pour un déploiement production robuste avec résilience et haute disponibilité :
-
-```bash
-# Sur le serveur : Construire l'image
-docker build -t signature-app:latest .
-
-# Déployer la stack Swarm
-docker stack deploy -c docker-compose.yml signature
-
-# Voir les services
-docker service ls | grep signature
-
-# Logs en temps réel
-docker service logs -f signature_signature-app
-
-# Mettre à jour le service
-docker service update --image signature-app:latest signature_signature-app
-
-# Supprimer la stack
-docker stack rm signature
-```
-
-#### Script de déploiement automatique (Windows)
-
-```powershell
-# Déploie automatiquement sur le serveur
-.\deploy.ps1
-
-# Surveille l'état du service
-.\monitor.ps1
-
-# Régénère le certificat SSL si nécessaire
-.\regenerate-ssl.ps1
-```
-
-#### Configuration Traefik (Swarm)
-- Reverse proxy avec SSL automatique (Let's Encrypt)
-- Réseau : `traefik-public` (overlay swarm)
-- Domaine : Configuré dans `docker-compose.yml` (label `Host()`)
-- Port interne : 5000 (Gunicorn)
+---
 
 ## 🔒 Sécurité
 
-### Protection des comptes
-- **Bcrypt** : Hashing des mots de passe avec 12 rounds
-- **Migration automatique** : Anciens mots de passe SHA-256 convertis en bcrypt
-- **Validation email** : Regex stricte pour les emails
-- **SECRET_KEY** : Protection des sessions Flask
+- ✅ Hashing des mots de passe avec bcrypt (12 rounds)
+- ✅ Protection CSRF avec Flask
+- ✅ Secrets chiffrés avec Docker Secrets en production
+- ✅ Validation des uploads (types MIME)
+- ✅ Protection anti-bot avec reCAPTCHA v3
+- ✅ Headers de sécurité HTTP
+- ✅ HTTPS avec Let's Encrypt
 
-### Protection anti-bot
-- **reCAPTCHA v3** : Détection intelligente des bots sans CAPTCHA visible
-- **Score adaptatif** : Seuil de 0.5 pour bloquer les bots suspects
-- Pas de limite de requêtes pour les utilisateurs légitimes
-
-### Protection des données
-- Fichiers stockés avec des noms UUID uniques
-- Validation stricte des types de fichiers (PDF uniquement)
-- Limite de taille de fichier configurée (16 MB par défaut)
-- `.env` dans `.gitignore` (secrets jamais commités)
-- Base de données SQLite avec transactions sécurisées
-
-## 🐛 Dépannage
-
-### Erreur "Module not found"
-```powershell
-pip install -r requirements.txt
-```
-
-### Port déjà utilisé
-Modifiez le port dans `app.py` ou arrêtez l'application utilisant le port 5000
-
-### Problèmes de permissions
-Exécutez PowerShell en tant qu'administrateur
-
-### 🔒 Erreur SSL "ERR_CERT_AUTHORITY_INVALID" en production
-
-Si vous rencontrez l'erreur `net::ERR_CERT_AUTHORITY_INVALID` en accédant à l'application, suivez ces étapes :
-
-#### 1️⃣ Diagnostic automatique
-Exécutez le script de diagnostic :
-```powershell
-.\fix-ssl.ps1
-```
-
-#### 2️⃣ Vérifications manuelles sur le serveur
-
-**a) Vérifier que Traefik est actif :**
-```bash
-ssh user@your-server
-docker ps | grep traefik
-```
-
-**b) Vérifier les logs Traefik :**
-```bash
-docker logs faildaily-traefik-ssl --tail 100 | grep -i "error\|certificate"
-```
-
-**c) Vérifier le réseau Docker :**
-```bash
-docker network ls | grep faildaily-ssl-network
-```
-
-**d) Vérifier les certificats Let's Encrypt :**
-```bash
-docker exec faildaily-traefik-ssl cat /letsencrypt/acme.json | grep signatureelectronique
-```
-
-#### 3️⃣ Solutions courantes
-
-**Problème : Traefik non démarré**
-```bash
-cd /path/to/faildaily
-docker-compose up -d
-```
-
-**Problème : Certificat non généré**
-```bash
-cd /home/taaazzz/SignatureElectronique
-docker-compose down
-docker-compose up -d
-# Attendre 2-3 minutes pour la génération Let's Encrypt
-docker logs faildaily-traefik-ssl -f
-```
-
-**Problème : DNS mal configuré**
-- Vérifier que `votre-domaine.com` pointe vers l'IP de votre serveur
-- Attendre la propagation DNS (jusqu'à 24h)
-- Tester avec : `nslookup votre-domaine.com`
-
-**Problème : Ports 80/443 non accessibles**
-```bash
-# Vérifier que les ports sont ouverts
-sudo ufw status
-sudo netstat -tulpn | grep ':80\|:443'
-```
-
-#### 4️⃣ Forcer la régénération du certificat
-
-Si rien ne fonctionne :
-```bash
-# Sur le serveur
-docker stack rm signature
-
-# Redémarrer Traefik si nécessaire puis redéployer
-docker stack deploy -c docker-compose.yml signature
-```
-
-#### 5️⃣ Contourner temporairement (DEV uniquement)
-
-Pour tester localement sans SSL :
-- Dans Chrome : taper `thisisunsafe` sur la page d'erreur
-- Ou accéder via `http://` au lieu de `https://` (si configuré)
-
-## 📝 Notes
-
-- Les fichiers uploadés et signés sont stockés localement
-- Pour la production, ajoutez un système de nettoyage automatique des anciens fichiers
-- Considérez l'ajout d'une authentification pour un usage professionnel
-- Les signatures sont en format PNG transparent
-
-## 🎯 Améliorations futures possibles
-
-- [x] Authentification utilisateur
-- [x] Base de données pour historique
-- [x] Statistiques personnalisées
-- [x] Mode sombre
-- [x] Protection anti-bot (reCAPTCHA v3)
-- [x] Hashing sécurisé des mots de passe (bcrypt)
-- [ ] Prévisualisation PDF intégrée
-- [ ] Signatures prédéfinies sauvegardées
-- [ ] Support de multiples signatures par document
-- [ ] Export en différents formats
-- [ ] Certificats numériques (PKI)
-- [ ] API REST documentée
-- [ ] Notifications email
-- [ ] Partage de documents signés
+---
 
 ## 📄 Licence
 
-Projet libre d'utilisation pour usage personnel et professionnel.
+MIT License - Voir le fichier LICENSE pour plus de détails.
 
-## 👤 Support
+---
 
-Pour toute question ou problème, créez une issue dans le projet.
+## 👨‍💻 Auteur
+
+**Taaazzz**
+- GitHub: [@Taaazzz-prog](https://github.com/Taaazzz-prog)
+
+---
+
+## 🙏 Remerciements
+
+- [pyHanko](https://github.com/MatthiasValvekens/pyHanko) - Signature PDF
+- [Flask](https://flask.palletsprojects.com/) - Framework web
+- [ReportLab](https://www.reportlab.com/) - Génération PDF
