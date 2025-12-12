@@ -29,7 +29,7 @@ services:
         # 🌐 Configuration Traefik pour Signature Électronique
         - "traefik.enable=true"
         - "traefik.docker.network=traefik-public"
-        - "traefik.http.routers.signature.rule=Host(`signatureelectronique.taaazzz-prog.fr`)"
+        - "traefik.http.routers.signature.rule=Host(`your-domain.com`)"
         - "traefik.http.routers.signature.priority=90"
         - "traefik.http.routers.signature.entrypoints=websecure"
         - "traefik.http.routers.signature.tls=true"

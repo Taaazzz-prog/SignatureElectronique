@@ -8,9 +8,9 @@
 
 Application web sécurisée pour signer des fichiers PDF électroniquement avec gestion de comptes utilisateurs.
 
-## 🌐 Demo en ligne
+## 🌐 Application
 
-**URL de production** : [https://signatureelectronique.taaazzz-prog.fr](https://signatureelectronique.taaazzz-prog.fr)
+Application déployée en production avec Docker Swarm sur serveur dédié.
 
 ---
 
@@ -218,7 +218,7 @@ docker stack rm signature
 #### Configuration Traefik (Swarm)
 - Reverse proxy avec SSL automatique (Let's Encrypt)
 - Réseau : `traefik-public` (overlay swarm)
-- Domaine : `signatureelectronique.taaazzz-prog.fr`
+- Domaine : Configuré dans `docker-compose.yml` (label `Host()`)
 - Port interne : 5000 (Gunicorn)
 
 ## 🔒 Sécurité
@@ -268,7 +268,7 @@ Exécutez le script de diagnostic :
 
 **a) Vérifier que Traefik est actif :**
 ```bash
-ssh taaazzz@51.75.55.185
+ssh user@your-server
 docker ps | grep traefik
 ```
 

@@ -92,9 +92,9 @@ Pour éviter de s'authentifier sur le serveur :
 #### Option B : Déploiement manuel
 ```bash
 # Sur le serveur
-ssh taaazzz@51.75.55.185
+ssh user@your-server
 
-cd /home/taaazzz/SignatureElectronique
+cd /home/user/SignatureElectronique
 
 # Pull de l'image depuis GHCR
 docker pull ghcr.io/taaazzz-prog/signatureelectronique:latest
@@ -126,10 +126,10 @@ ssh user@your-server 'docker exec $(docker ps -q -f name=signature_signature-app
 
 ```bash
 # Test HTTP
-curl -I https://signatureelectronique.taaazzz-prog.fr
+curl -I https://your-domain.com
 
 # Test API status
-curl https://signatureelectronique.taaazzz-prog.fr/api/goodflag/status
+curl https://your-domain.com/api/goodflag/status
 ```
 
 ---
