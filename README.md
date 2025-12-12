@@ -8,6 +8,18 @@
 
 Application web sécurisée pour signer des fichiers PDF électroniquement avec gestion de comptes utilisateurs.
 
+## 🔒 Configuration de Production
+
+⚠️ **Repository privé séparé** : La configuration de production (secrets, adresses réelles, infrastructure) se trouve dans un repository privé distinct pour des raisons de sécurité.
+
+- 🔐 **Secrets** : Docker Secrets avec chiffrement AES-256
+- 🌐 **Déploiement** : Docker Swarm sur serveur dédié
+- 📋 **Documentation** : Procédures opérationnelles complètes
+
+**Pour déployer en production**, consultez le repository privé avec la configuration réelle.
+
+---
+
 ## 🌐 Application
 
 Application déployée en production avec Docker Swarm sur serveur dédié.
