@@ -1,0 +1,38 @@
+# ⚠️ REPOSITORY PRIVÉ - .gitignore
+# Même en privé, on exclut certains fichiers
+
+# Backups de base de données (trop gros)
+backups/*.db
+backups/*.sql
+backups/*.tar.gz
+backups/*.zip
+
+# Logs
+*.log
+logs/
+
+# Fichiers temporaires
+*.tmp
+*.bak
+*.swp
+*.swo
+
+# Fichiers système
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# IDE
+.vscode/
+.idea/
+*.sublime-*
+
+# Python
+__pycache__/
+*.pyc
+*.py[cod]
+*$py.class
+.Python
+
+# Node
+node_modules/
