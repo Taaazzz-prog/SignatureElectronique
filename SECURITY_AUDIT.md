@@ -119,7 +119,7 @@ image: ghcr.io/taaazzz-prog/signatureelectronique:latest
 
 **Avant** :
 ```bash
-ssh taaazzz@51.75.55.185
+ssh username@x.x.x.x
 ```
 
 **Après** :
