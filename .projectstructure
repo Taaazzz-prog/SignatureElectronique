@@ -1,0 +1,95 @@
+# Structure du Projet - Signature Électronique
+
+## 📁 Racine
+```
+SignatureElectronique/
+├── README.md                    # Documentation principale
+├── requirements.txt             # Dépendances Python
+├── Dockerfile                   # Configuration Docker
+├── docker-compose.yml           # Orchestration Docker (dev)
+└── .gitignore                   # Fichiers ignorés par Git
+```
+
+## 📂 Dossiers Principaux
+
+### `/src/` - Code Source
+- `app.py` - Application Flask principale
+- `database.py` - Gestion de la base de données
+- `digital_signature.py` - Logique de signature PDF
+- `goodflag_api.py` - Intégration API GoodFlag
+- `secrets_helper.py` - Gestion des secrets Docker
+
+### `/templates/` - Templates HTML
+- Interface utilisateur Flask/Jinja2
+
+### `/static/` - Ressources Statiques
+- `css/` - Feuilles de style
+- `js/` - Scripts JavaScript
+
+### `/config/` - Configuration
+- `.env` - Variables d'environnement (NON commité)
+- `.env.example` - Template des variables
+- `docker-compose.prod.yml` - Config production
+- `.dockerignore` - Fichiers exclus de Docker
+
+### `/scripts/` - Scripts d'Automatisation
+- `deploy.ps1` - Déploiement local
+- `deploy-swarm-prod.ps1` - Déploiement production
+- `build-and-push.ps1` - Build et push GHCR
+- `monitor.ps1` - Monitoring des services
+- `push-public.ps1` - Push vers repo public
+- `push-private.ps1` - Push vers repo privé
+- `fix-ssl.ps1` - Réparation SSL
+- `regenerate-ssl.ps1` - Régénération certificats
+
+### `/documentation/` - Documentation
+- `CHANGEMENTS.md` - Journal des modifications
+- `GOODFLAG_INTEGRATION.md` - Guide d'intégration GoodFlag
+- `MIGRATION_SWARM.md` - Migration vers Docker Swarm
+- `SECURITY_AUDIT.md` - Audit de sécurité
+- `STATUS.md` - État du projet
+- `DUAL_REMOTE_GUIDE.md` - Guide dual-remote Git
+
+### `/infrastructure/` - Infrastructure
+- Configuration serveur et déploiement
+
+### `/secrets/` - Gestion des Secrets
+- Scripts de création de secrets Docker
+
+### `/monitoring/` - Monitoring
+- Configuration et logs de monitoring
+
+### `/docs/` - Documentation Additionnelle
+- Documentation technique supplémentaire
+
+## 🗄️ Dossiers de Données (Ignorés par Git)
+
+### `/uploads/` - Fichiers Uploadés
+- PDFs uploadés par les utilisateurs
+
+### `/signed/` - Fichiers Signés
+- PDFs après signature
+
+### `/signatures/` - Images de Signatures
+- Signatures graphiques sauvegardées
+
+### `/backups/` - Sauvegardes
+- Backups de la base de données
+
+## 🔒 Fichiers Sensibles (NON commités)
+- `.env` - Variables d'environnement
+- `*.db` - Bases de données
+- `/uploads/*` - Uploads utilisateurs
+- `/signed/*` - Documents signés
+- `/signatures/*` - Signatures enregistrées
+- `/backups/*` - Fichiers de backup
+
+## 🌿 Environnements Virtuels (NON commités)
+- `.venv/` - Environnement virtuel Python
+
+## ⚙️ Configuration Git
+- `.git/` - Données Git
+- `.github/` - GitHub Actions et workflows
+- `.gitignore` - Exclusions Git standard
+- `.gitignore-public` - Exclusions pour repo public
+- `.gitignore-private` - Exclusions pour repo privé
